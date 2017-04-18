@@ -1,0 +1,36 @@
+*******************************************************
+sdiag output at Wed Apr 12 11:04:01 2017
+Data since      Wed Apr 12 02:00:00 2017
+*******************************************************
+Server thread count: 3
+Agent queue size:    0
+
+Jobs submitted: 9706
+Jobs started:   35395
+Jobs completed: 31254
+Jobs canceled:  2835
+Jobs failed:    0
+
+Main schedule statistics (microseconds):
+        Last cycle:   97209
+        Max cycle:    1407590
+        Total cycles: 34585
+        Mean cycle:   74593
+        Mean depth cycle:  103
+        Cycles per minute: 63
+        Last queue length: 57011
+
+Backfilling stats
+        Total backfilled jobs (since last slurm start): 111544
+        Total backfilled jobs (since last stats cycle start): 793
+        Total cycles: 529
+        Last cycle when: Wed Apr 12 11:03:21 2017
+        Last cycle: 1942890
+        Max cycle:  5933334
+        Mean cycle: 1960820
+        Last depth cycle: 56
+        Last depth cycle (try sched): 56
+        Depth Mean: 29324
+        Depth Mean (try depth): 1659
+        Last queue length: 57064
+        Queue length mean: 40772

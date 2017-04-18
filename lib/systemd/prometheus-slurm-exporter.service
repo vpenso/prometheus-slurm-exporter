@@ -1,0 +1,10 @@
+[Unit]
+Description=Prometheus SLURM Exporter
+
+[Service]
+ExecStart=/usr/sbin/prometheus-slurm-exporter
+Restart=always
+RestartSec=15
+
+[Install]
+WantedBy=multi-user.target
