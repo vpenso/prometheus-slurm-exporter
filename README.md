@@ -49,11 +49,57 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 
 ## How to install the exporter
 
+### Debian
+
 Install the Prometheus [Go client library](https://github.com/prometheus/client_golang)
 
     >>> apt install -t jessie-backports golang-github-prometheus-client-golang-dev
 
 Use the [Makefile](Makefile) to build and test the code.
+
+### CentOS
+
+Under CentOS not all the GOlang dependencies are available as packages.
+
+In order to use the [Makefile](Makefile) provided with this repository you can proceed as follows:
+
+1. Install the GOlang compiler plus GIT and make:
+```bash
+yum install git golang-bin make
+```
+
+2. Clone this repo and export the *GOPATH* environment variable:
+```bash
+git clone https://github.com/vpenso/prometheus-slurm-exporter.git
+cd prometheus-slurm-exporter
+export GOPATH=$(pwd):/usr/share/gocode
+```
+
+3. Install all the necessary GOlang dependencies:
+```bash
+go get github.com/prometheus/client_golang
+go get github.com/prometheus/client_model
+go get github.com/prometheus/common
+go get github.com/prometheus/procfs
+go get github.com/beorn7/perks/quantile
+go get github.com/golang/protobuf/proto
+go get github.com/matttproud/golang_protobuf_extensions/pbutil
+go get github.com/sirupsen/logrus
+go get gopkg.in/alecthomas/kingpin.v2
+```
+
+**NOTE**: all these packages will be saved under the ``src`` subdirectory of the Slurm exporter project.
+
+In some cases, the ``go get`` command may report the following message:
+```
+package github.com/[...]/[...]: no buildable Go source files
+```
+This should be considered harmless and it will not affect the build process.
+
+4. Build the executable:
+```bash
+make build
+```
 
 ## Prometheus references
 
