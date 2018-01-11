@@ -132,6 +132,11 @@ Checking prometheus.yml
 [...]
 ```
 
+## Grafana Dashboard
+
+A [dashboard](https://grafana.com/dashboards/4323) is available in order to visualize the exported metrics through [Grafana](https://grafana.com).
+
+
 ## Prometheus references
 
 * [GOlang Package Documentation](https://godoc.org/github.com/prometheus/client_golang/prometheus)
