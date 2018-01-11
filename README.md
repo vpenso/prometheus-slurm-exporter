@@ -101,6 +101,37 @@ This should be considered harmless and it will not affect the build process.
 make build
 ```
 
+## Prometheus Configuration for the SLURM exporter
+
+It is strongly advisable to configure the Prometheus server with the following parameters:
+
+```
+#
+# SLURM resource manager:
+# 
+  - job_name: 'my_slurm_exporter'
+
+    scrape_interval:  30s
+
+    scrape_timeout:   30s
+
+    static_configs:
+      - targets: ['slurm_host.fqdn:8080']
+```
+
+* **scrape_interval**: a 30 seconds interval will avoid possible 'overloading' on the SLURM master due to frequent calls of sdiag/squeue/sinfo commands through the exporter.
+* **scrape_timeout**: on a busy SLURM master a too short scraping timeout will abort the communication from the Prometheus server toward the exporter, thus generating a ``context_deadline_exceeded`` error.
+
+**NOTE**: the Prometheus server is using __YAML__ as format for its configuration file, thus **indentation** is really important. Before reloading the Prometheus server it would be better to check the syntax:
+
+```
+$~ promtool check-config prometheus.yml
+
+Checking prometheus.yml
+  SUCCESS: 1 rule files found
+[...]
+```
+
 ## Prometheus references
 
 * [GOlang Package Documentation](https://godoc.org/github.com/prometheus/client_golang/prometheus)
