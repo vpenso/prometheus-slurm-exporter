@@ -139,7 +139,7 @@ A [dashboard](https://grafana.com/dashboards/4323) is available in order to visu
 The following are screenshots of the dashboard:
 
 ![Status of the Nodes](images/Node_Status.png)
-![Status of the Jobs](images/Jobs_Status.png)
+![Status of the Jobs](images/Job_Status.png)
 ![SLURM Scheduler Information](images/Scheduler_Info.png)
 
 ## Prometheus references
