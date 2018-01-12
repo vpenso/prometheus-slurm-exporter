@@ -147,7 +147,7 @@ A [dashboard](https://grafana.com/dashboards/4323) is available in order to visu
 
 ## License
 
-Copyright 2017 Victor Penso
+Copyright 2017 Victor Penso, Matteo Dessalvi
 
 This is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
