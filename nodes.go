@@ -71,6 +71,7 @@ func ParseNodesMetrics(input []byte) *NodesMetrics {
 			alloc := regexp.MustCompile(`^alloc`)
 			comp := regexp.MustCompile(`^comp`)
 			down := regexp.MustCompile(`^down`)
+			drain := regexp.MustCompile(`^drain`)
 			fail := regexp.MustCompile(`^fail`)
 			err := regexp.MustCompile(`^err`)
 			idle := regexp.MustCompile(`^idle`)
@@ -84,6 +85,8 @@ func ParseNodesMetrics(input []byte) *NodesMetrics {
 				nm.comp++
 			case down.MatchString(state) == true:
 				nm.down++
+			case drain.MatchString(state) == true:
+				nm.drain++
 			case fail.MatchString(state) == true:
 				nm.fail++
 			case err.MatchString(state) == true:
