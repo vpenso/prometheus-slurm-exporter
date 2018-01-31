@@ -8,7 +8,10 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 
 * **Allocated**: nodes which has been allocated to one or more jobs.
 * **Completing**: all jobs associated with these nodes are in the process of being completed.
-* **Down**:  nodes which are unavailable for use.
+* **Down**: nodes which are unavailable for use.
+* **Drain**: with this metric two different states are accounted for:
+  - nodes in ``drained`` state (marked unavailable for use per system administrator request)
+  - nodes in ``draining`` state (currently executing jobs but which will not be allocated for new ones).
 * **Fail**: these nodes are expected to fail soon and are unavailable for use per system administrator request.
 * **Error**: nodes which are currently in an error state and not capable of running any jobs.
 * **Idle**: nodes not allocated to any jobs and thus available for use.
