@@ -77,7 +77,7 @@ func ParseNodesMetrics(input []byte) *NodesMetrics {
 			idle := regexp.MustCompile(`^idle`)
 			maint := regexp.MustCompile(`^maint`)
 			mix := regexp.MustCompile(`^mix`)
-			resv := regexp.MustCompile(`^resv`)
+			resv := regexp.MustCompile(`^res`)
 			switch {
 			case alloc.MatchString(state) == true:
 				nm.alloc++
