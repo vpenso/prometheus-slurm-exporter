@@ -15,3 +15,6 @@ test:
 
 run:
 	@GOPATH=$(GOPATH) go run $(GOFILES)
+
+clean:
+	if [ -f ${GOBIN} ] ; then rm -f ${GOBIN} ; fi
