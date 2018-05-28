@@ -50,7 +50,11 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 
 [Information extracted from the SLURM **sdiag** command](https://slurm.schedmd.com/sdiag.html)
 
-## How to install the exporter
+## How to build an RPM package from the relases
+
+Consult the [following document](packaging/rpm/README.md) under the ``packaging/rpm`` subdirectory.
+
+## How to build the exporter from the sources
 
 ### Debian
 
