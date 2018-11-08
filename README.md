@@ -113,6 +113,8 @@ make build
 It is strongly advisable to configure the Prometheus server with the following parameters:
 
 ```
+scrape_configs:
+
 #
 # SLURM resource manager:
 # 
@@ -128,6 +130,8 @@ It is strongly advisable to configure the Prometheus server with the following p
 
 * **scrape_interval**: a 30 seconds interval will avoid possible 'overloading' on the SLURM master due to frequent calls of sdiag/squeue/sinfo commands through the exporter.
 * **scrape_timeout**: on a busy SLURM master a too short scraping timeout will abort the communication from the Prometheus server toward the exporter, thus generating a ``context_deadline_exceeded`` error.
+
+The previous configuration file can be immediately used with a fresh installation of Promethues. At the same time, we highly recommend to include at least the ``global`` section into the configuration. Official documentation about __configuring Prometheus__ is [available here](https://prometheus.io/docs/prometheus/latest/configuration/configuration/).
 
 **NOTE**: the Prometheus server is using __YAML__ as format for its configuration file, thus **indentation** is really important. Before reloading the Prometheus server it would be better to check the syntax:
 
