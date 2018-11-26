@@ -24,6 +24,7 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 ### Status of the Jobs
 
 * **PENDING**: Jobs awaiting for resource allocation.
+* **PENDING_DEPENDENCY**: Jobs awaiting because of a unexecuted job dependency.
 * **RUNNING**: Jobs currently allocated.
 * **SUSPENDED**: Job has an allocation but execution has been suspended and CPUs have been released for other jobs.
 * **CANCELLED**: Jobs which were explicitly cancelled by the user or system administrator.
@@ -84,13 +85,7 @@ export GOPATH=$(pwd):/usr/share/gocode
 
 3. Install all the necessary GOlang dependencies:
 ```bash
-go get github.com/prometheus/client_golang
-go get github.com/prometheus/client_model
-go get github.com/prometheus/common
-go get github.com/prometheus/procfs
-go get github.com/beorn7/perks/quantile
-go get github.com/golang/protobuf/proto
-go get github.com/matttproud/golang_protobuf_extensions/pbutil
+go get github.com/prometheus/client_golang/prometheus
 go get github.com/sirupsen/logrus
 go get gopkg.in/alecthomas/kingpin.v2
 ```

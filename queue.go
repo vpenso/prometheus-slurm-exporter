@@ -25,6 +25,7 @@ import (
 
 type QueueMetrics struct {
   pending     float64
+  pending_dep float64
   running     float64
   suspended   float64
   cancelled   float64
@@ -47,9 +48,14 @@ func ParseQueueMetrics(input []byte) *QueueMetrics {
   lines := strings.Split(string(input), "\n")
   for _, line := range lines {
     if strings.Contains(line,",") {
-      state := strings.Split(line, ",")[1]
+      splitted := strings.Split(line, ",")
+      state := splitted[1]
       switch state {
-      case "PENDING":     qm.pending++
+      case "PENDING":
+        qm.pending++
+        if len(splitted) > 2 && splitted[2] == "Dependency" {
+          qm.pending_dep++
+        }
       case "RUNNING":     qm.running++
       case "SUSPENDED":   qm.suspended++
       case "CANCELLED":   qm.cancelled++
@@ -68,7 +74,7 @@ func ParseQueueMetrics(input []byte) *QueueMetrics {
 
 // Execute the squeue command and return its output
 func QueueData() []byte {
-  cmd := exec.Command("/usr/bin/squeue", "-h", "-o %A,%T")
+  cmd := exec.Command("/usr/bin/squeue", "-h", "-o %A,%T,%r")
   stdout, err := cmd.StdoutPipe()
   if err != nil { log.Fatal(err) }
   if err := cmd.Start(); err != nil { log.Fatal(err) }
@@ -86,6 +92,7 @@ func QueueData() []byte {
 func NewQueueCollector() *QueueCollector {
   return &QueueCollector {
     pending: prometheus.NewDesc("slurm_queue_pending", "Pending jobs in queue", nil, nil),
+    pending_dep: prometheus.NewDesc("slurm_queue_pending_dependency", "Pending jobs because of dependency in queue", nil, nil),
     running: prometheus.NewDesc("slurm_queue_running", "Running jobs in the cluster", nil, nil),
     suspended: prometheus.NewDesc("slurm_queue_suspended", "Suspended jobs in the cluster", nil, nil),
     cancelled: prometheus.NewDesc("slurm_queue_cancelled", "Cancelled jobs in the cluster", nil, nil),
@@ -101,6 +108,7 @@ func NewQueueCollector() *QueueCollector {
 
  type QueueCollector struct {
    pending     *prometheus.Desc
+   pending_dep *prometheus.Desc
    running     *prometheus.Desc
    suspended   *prometheus.Desc
    cancelled   *prometheus.Desc
@@ -115,6 +123,7 @@ func NewQueueCollector() *QueueCollector {
 
  func (qc *QueueCollector) Describe(ch chan<- *prometheus.Desc) {
    ch <- qc.pending
+   ch <- qc.pending_dep
    ch <- qc.running
    ch <- qc.suspended
    ch <- qc.cancelled
@@ -130,6 +139,7 @@ func NewQueueCollector() *QueueCollector {
  func (qc *QueueCollector) Collect(ch chan<- prometheus.Metric) {
    qm := QueueGetMetrics()
    ch <- prometheus.MustNewConstMetric(qc.pending, prometheus.GaugeValue, qm.pending)
+   ch <- prometheus.MustNewConstMetric(qc.pending_dep, prometheus.GaugeValue, qm.pending_dep)
    ch <- prometheus.MustNewConstMetric(qc.running, prometheus.GaugeValue, qm.running)
    ch <- prometheus.MustNewConstMetric(qc.suspended, prometheus.GaugeValue, qm.suspended)
    ch <- prometheus.MustNewConstMetric(qc.cancelled, prometheus.GaugeValue, qm.cancelled)
