@@ -120,7 +120,7 @@ scrape_configs:
     scrape_timeout:   30s
 
     static_configs:
-      - targets: ['slurm_host.fqdn:8080']
+      - targets: ['slurm_host.fqdn:9341']
 ```
 
 * **scrape_interval**: a 30 seconds interval will avoid possible 'overloading' on the SLURM master due to frequent calls of sdiag/squeue/sinfo commands through the exporter.
