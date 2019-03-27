@@ -16,7 +16,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
-        "fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"io/ioutil"
 	"log"
