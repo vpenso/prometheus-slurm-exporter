@@ -28,6 +28,7 @@ func init() {
   prometheus.MustRegister(NewSchedulerCollector()) // from scheduler.go
   prometheus.MustRegister(NewQueueCollector())     // from queue.go
   prometheus.MustRegister(NewNodesCollector())     // from nodes.go
+  prometheus.MustRegister(NewCPUsCollector())      // from cpus.go
 }
 
 var listenAddress = flag.String(
