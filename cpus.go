@@ -24,19 +24,19 @@ import (
 	"strings"
 )
 
-type CoresMetrics struct {
+type CPUsMetrics struct {
 	alloc float64
 	idle  float64
 	other float64
 	total float64
 }
 
-func CoresGetMetrics() *CoresMetrics {
-	return ParseCoresMetrics(CoresData())
+func CPUsGetMetrics() *CPUsMetrics {
+	return ParseCPUsMetrics(CPUsData())
 }
 
-func ParseCoresMetrics(input []byte) *CoresMetrics {
-	var cm CoresMetrics
+func ParseCPUsMetrics(input []byte) *CPUsMetrics {
+	var cm CPUsMetrics
 	if strings.Contains(string(input), "/") {
 	    splitted := strings.Split(strings.TrimSpace(string(input)), "/")
 	    cm.alloc, _ = strconv.ParseFloat(splitted[0], 64)
@@ -48,7 +48,7 @@ func ParseCoresMetrics(input []byte) *CoresMetrics {
 }
 
 // Execute the sinfo command and return its output
-func CoresData() []byte {
+func CPUsData() []byte {
 	cmd := exec.Command("sinfo", "-h", "-o %C")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -70,16 +70,16 @@ func CoresData() []byte {
  * https://godoc.org/github.com/prometheus/client_golang/prometheus#Collector
  */
 
-func NewCoresCollector() *CoresCollector {
-	return &CoresCollector{
-		alloc: prometheus.NewDesc("slurm_cores_alloc", "Allocated cores", nil, nil),
-		idle:  prometheus.NewDesc("slurm_cores_idle", "Idle cores", nil, nil),
-		other: prometheus.NewDesc("slurm_cores_other", "Mix cores", nil, nil),
-		total: prometheus.NewDesc("slurm_cores_total", "Total cores", nil, nil),
+func NewCPUsCollector() *CPUsCollector {
+	return &CPUsCollector{
+		alloc: prometheus.NewDesc("slurm_cpus_alloc", "Allocated CPUs", nil, nil),
+		idle:  prometheus.NewDesc("slurm_cpus_idle", "Idle CPUs", nil, nil),
+		other: prometheus.NewDesc("slurm_cpus_other", "Mix CPUs", nil, nil),
+		total: prometheus.NewDesc("slurm_cpus_total", "Total CPUs", nil, nil),
 	}
 }
 
-type CoresCollector struct {
+type CPUsCollector struct {
 	alloc *prometheus.Desc
 	idle  *prometheus.Desc
 	other *prometheus.Desc
@@ -87,16 +87,16 @@ type CoresCollector struct {
 }
 
 // Send all metric descriptions
-func (cc *CoresCollector) Describe(ch chan<- *prometheus.Desc) {
+func (cc *CPUsCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- cc.alloc
 	ch <- cc.idle
 	ch <- cc.other
 	ch <- cc.total
 }
-func (cc *CoresCollector) Collect(ch chan<- prometheus.Metric) {
-	cm := CoresGetMetrics()
+func (cc *CPUsCollector) Collect(ch chan<- prometheus.Metric) {
+	cm := CPUsGetMetrics()
 	ch <- prometheus.MustNewConstMetric(cc.alloc, prometheus.GaugeValue, cm.alloc)
-	ch <- prometheus.MustNewConstMetric(cc.idle, prometheus.GaugeValue, cm.idle)
+	ch <- prometheus.MustNewConstMetric(cc.idle,  prometheus.GaugeValue, cm.idle)
 	ch <- prometheus.MustNewConstMetric(cc.other, prometheus.GaugeValue, cm.other)
 	ch <- prometheus.MustNewConstMetric(cc.total, prometheus.GaugeValue, cm.total)
 }

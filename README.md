@@ -4,12 +4,12 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 
 ## Exported Metrics
 
-### State of the Cores
+### State of the CPUs
 
-* **Allocated**: cores which have been allocated to a job.
-* **Idle**: cores not allocated to a job and thus available for use.
-* **Other**: cores which are unavailable for use at the moment.
-* **Total**: total number of cores.
+* **Allocated**: CPUs which have been allocated to a job.
+* **Idle**: CPUs not allocated to a job and thus available for use.
+* **Other**: CPUs which are unavailable for use at the moment.
+* **Total**: total number of CPUs.
 
 [Information extracted from the SLURM **sinfo** command](https://slurm.schedmd.com/sinfo.html)
 
