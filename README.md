@@ -11,7 +11,8 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 * **Other**: CPUs which are unavailable for use at the moment.
 * **Total**: total number of CPUs.
 
-[Information extracted from the SLURM **sinfo** command](https://slurm.schedmd.com/sinfo.html)
+- [Information extracted from the SLURM **sinfo** command](https://slurm.schedmd.com/sinfo.html)
+- [Slurm CPU Management User and Administrator Guide](https://slurm.schedmd.com/cpu_management.html)
 
 ### State of the Nodes
 
