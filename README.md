@@ -113,6 +113,21 @@ This should be considered harmless and it will not affect the build process.
 make build
 ```
 
+## Command line options
+
+The following is the list of the command line options available on this exporter:
+
+```bash
+:~$ prometheus-slurm-exporter -h
+Usage of ./prometheus-slurm-exporter:
+  -listen-address string
+    	The address to listen on for HTTP requests. (default ":8080")
+  -log.format value
+    	Set the log target and format. Example: "logger:syslog?appname=bob&local=7" or "logger:stdout?json=true" (default "logger:stderr")
+  -log.level value
+    	Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal] (default "info")
+```
+
 ## Prometheus Configuration for the SLURM exporter
 
 It is strongly advisable to configure the Prometheus server with the following parameters:
