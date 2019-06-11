@@ -71,9 +71,11 @@ Consult the [following document](packaging/rpm/README.md) under the ``packaging/
 
 Install the Prometheus [Go client library](https://github.com/prometheus/client_golang)
 
-    >>> apt install -t jessie-backports golang-github-prometheus-client-golang-dev
+    >>> apt install golang-github-prometheus-client-golang-dev
 
 Use the [Makefile](Makefile) to build and test the code.
+
+**Debian Jessie**: in this release, the Prometheus client library package was available only through the backport archives but the Debian maintainers discontinued it, as explained [here](https://lists.debian.org/debian-backports-announce/2018/07/msg00000.html). Now only __Debian Stretch__ is supported with the previous build method.
 
 ### CentOS
 
