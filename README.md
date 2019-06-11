@@ -128,6 +128,10 @@ Usage of ./prometheus-slurm-exporter:
     	Only log messages with the given severity or above. Valid levels: [debug, info, warn, error, fatal] (default "info")
 ```
 
+## Installation
+
+After successfully ran ``make``, you will have a binary called ``prometheus-slurm-exporter`` under the ``bin/`` subdirectory in your local copy of this repository. You can now copy this binary wherever you have installed the Slurm utilities (sinfo,squeue, sdiag) and then put it into execution, either interactively or through a Systemd unit (an example is available [here](lib/systemd/prometheus-slurm-exporter.service)).
+
 ## Prometheus Configuration for the SLURM exporter
 
 It is strongly advisable to configure the Prometheus server with the following parameters:
