@@ -16,11 +16,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
+  "io/ioutil"
   "log"
+  "os/exec"
+  "regexp"
   "strings"
   "strconv"
-  "io/ioutil"
-  "os/exec"
   "github.com/prometheus/client_golang/prometheus"
 )
 
@@ -53,28 +54,51 @@ func SchedulerData() []byte {
   return out
 }
 
-// Helper function to split a single line from the sdiag output
-func SplitColonValueToFloat(input string) float64 {
-  // Verify if the string extracted from the sdiag output is empty
-  if input == "" { return 0 }
-  str := strings.Split(input,":")
-  rvalue := strings.TrimSpace(str[1])
-  flt, _ := strconv.ParseFloat(rvalue,64)
-  return flt
-}
-
 // Extract the relevant metrics from the sdiag output
 func ParseSchedulerMetrics(input []byte) *SchedulerMetrics {
-  lines := strings.Split(string(input),"\n")
   var sm SchedulerMetrics
-  sm.threads             = SplitColonValueToFloat(lines[4])
-  sm.queue_size          = SplitColonValueToFloat(lines[5])
-  sm.last_cycle          = SplitColonValueToFloat(lines[14])
-  sm.mean_cycle          = SplitColonValueToFloat(lines[17])
-  sm.cycle_per_minute    = SplitColonValueToFloat(lines[19])
-  sm.backfill_last_cycle = SplitColonValueToFloat(lines[27])
-  sm.backfill_mean_cycle = SplitColonValueToFloat(lines[29])
-  sm.backfill_depth_mean = SplitColonValueToFloat(lines[32])
+  lines := strings.Split(string(input),"\n")
+  // Guard variables to check for string repetitions in the output of sdiag 
+  // (two 'Last cycle', two 'Mean cycle')
+  lc_count := 0
+  mc_count := 0
+  for _, line := range lines {
+          if strings.Contains(line, ":") {
+                  state := strings.Split(line, ":")[0]
+                  st  := regexp.MustCompile(`^Server thread`)
+                  qs  := regexp.MustCompile(`^Agent queue`)
+		  lc  := regexp.MustCompile(`^[\s]+Last cycle$`) 
+		  mc  := regexp.MustCompile(`^[\s]+Mean cycle$`)
+                  cpm := regexp.MustCompile(`^[\s]+Cycles per`)
+		  dpm := regexp.MustCompile(`^[\s]+Depth Mean$`)
+                  switch {
+	            case st.MatchString(state) == true:
+			     sm.threads, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
+                    case qs.MatchString(state) == true:
+                             sm.queue_size, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
+                    case lc.MatchString(state) == true:
+                             if lc_count == 0 {
+                                sm.last_cycle, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
+				lc_count = 1
+			     }	
+                             if lc_count == 1 {
+                                sm.backfill_last_cycle, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
+			     }
+                    case mc.MatchString(state) == true:
+                             if mc_count == 0 {
+                                sm.mean_cycle, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
+				mc_count = 1
+			     }  
+			     if mc_count == 1 {
+                                sm.backfill_mean_cycle, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
+			     }
+                    case cpm.MatchString(state) == true:
+                             sm.cycle_per_minute, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
+                    case dpm.MatchString(state) == true:
+                             sm.backfill_depth_mean, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
+                  }
+	  }
+  }
   return &sm
 }
 
