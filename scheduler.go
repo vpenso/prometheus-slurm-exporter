@@ -45,7 +45,7 @@ type SchedulerMetrics struct {
 
 // Execute the sdiag command and return its output
 func SchedulerData() []byte {
-  cmd := exec.Command("/usr/bin/sdiag")
+  cmd := exec.Command("sdiag")
   stdout, err := cmd.StdoutPipe()
   if err != nil { log.Fatal(err) }
   if err := cmd.Start(); err != nil { log.Fatal(err) }
