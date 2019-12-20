@@ -16,13 +16,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
 	"io/ioutil"
 	"log"
 	"os/exec"
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type NodesMetrics struct {
@@ -38,7 +39,7 @@ type NodesMetrics struct {
 	resv  float64
 }
 
-func NodesGetMetrics() *NodesMetrics {
+func NodesGetMetrics() map[string]*NodesMetrics {
 	return ParseNodesMetrics(NodesData())
 }
 
@@ -57,10 +58,49 @@ func RemoveDuplicates(s []string) []string {
 	return t
 }
 
-func ParseNodesMetrics(input []byte) *NodesMetrics {
-	var nm NodesMetrics
-	lines := strings.Split(string(input), "\n")
+/*
+ * Get the names of the partitions so that we can register the relevant collectors.
+ */
+func GetPartitionNames() []string {
+	return ParsePartitionNames(GetSinfo())
+}
 
+// Execute the sinfo command and return its output.
+func GetSinfo() []byte {
+	cmd := exec.Command("sinfo", "-s")
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+	out, _ := ioutil.ReadAll(stdout)
+	if err := cmd.Wait(); err != nil {
+		log.Fatal(err)
+	}
+	return out
+}
+
+func ParsePartitionNames(input []byte) []string {
+	partitions := make([]string, 0)
+	lines := strings.Split(string(input), "\n")
+	for _, line := range lines[1:] {
+		if len(line) > 2 {
+			partitions = append(partitions, strings.Trim(strings.Fields(line)[0], "*"))
+		}
+	}
+	return partitions
+}
+
+func ParseNodesMetrics(input []byte) map[string]*NodesMetrics {
+	qnm := make(map[string]*NodesMetrics)
+	// initialize the metrics
+	for _, part := range GetPartitionNames() {
+		qnm[part] = &NodesMetrics{0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+	}
+
+	lines := strings.Split(string(input), "\n")
 	// Sort and remove all the duplicates from the 'sinfo' output
 	sort.Strings(lines)
 	lines_uniq := RemoveDuplicates(lines)
@@ -68,6 +108,7 @@ func ParseNodesMetrics(input []byte) *NodesMetrics {
 	for _, line := range lines_uniq {
 		if strings.Contains(line, ",") {
 			state := strings.Split(line, ",")[1]
+			part := strings.Split(line, ",")[2]
 			alloc := regexp.MustCompile(`^alloc`)
 			comp := regexp.MustCompile(`^comp`)
 			down := regexp.MustCompile(`^down`)
@@ -80,34 +121,34 @@ func ParseNodesMetrics(input []byte) *NodesMetrics {
 			resv := regexp.MustCompile(`^res`)
 			switch {
 			case alloc.MatchString(state) == true:
-				nm.alloc++
+				qnm[part].alloc++
 			case comp.MatchString(state) == true:
-				nm.comp++
+				qnm[part].comp++
 			case down.MatchString(state) == true:
-				nm.down++
+				qnm[part].down++
 			case drain.MatchString(state) == true:
-				nm.drain++
+				qnm[part].drain++
 			case fail.MatchString(state) == true:
-				nm.fail++
+				qnm[part].fail++
 			case err.MatchString(state) == true:
-				nm.err++
+				qnm[part].err++
 			case idle.MatchString(state) == true:
-				nm.idle++
+				qnm[part].idle++
 			case maint.MatchString(state) == true:
-				nm.maint++
+				qnm[part].maint++
 			case mix.MatchString(state) == true:
-				nm.mix++
+				qnm[part].mix++
 			case resv.MatchString(state) == true:
-				nm.resv++
+				qnm[part].resv++
 			}
 		}
 	}
-	return &nm
+	return qnm
 }
 
-// Execute the squeue command and return its output
+// Execute the sinfo command and return its output
 func NodesData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-o %n,%T")
+	cmd := exec.Command("sinfo", "-h", "-o %n,%T,%R")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
@@ -129,17 +170,18 @@ func NodesData() []byte {
  */
 
 func NewNodesCollector() *NodesCollector {
+	labels := []string{"partition"}
 	return &NodesCollector{
-		alloc: prometheus.NewDesc("slurm_nodes_alloc", "Allocated nodes", nil, nil),
-		comp:  prometheus.NewDesc("slurm_nodes_comp", "Completing nodes", nil, nil),
-		down:  prometheus.NewDesc("slurm_nodes_down", "Down nodes", nil, nil),
-		drain: prometheus.NewDesc("slurm_nodes_drain", "Drain nodes", nil, nil),
-		err:   prometheus.NewDesc("slurm_nodes_err", "Error nodes", nil, nil),
-		fail:  prometheus.NewDesc("slurm_nodes_fail", "Fail nodes", nil, nil),
-		idle:  prometheus.NewDesc("slurm_nodes_idle", "Idle nodes", nil, nil),
-		maint: prometheus.NewDesc("slurm_nodes_maint", "Maint nodes", nil, nil),
-		mix:   prometheus.NewDesc("slurm_nodes_mix", "Mix nodes", nil, nil),
-		resv:  prometheus.NewDesc("slurm_nodes_resv", "Reserved nodes", nil, nil),
+		alloc: prometheus.NewDesc("slurm_nodes_alloc", "Allocated nodes", labels, nil),
+		comp:  prometheus.NewDesc("slurm_nodes_comp", "Completing nodes", labels, nil),
+		down:  prometheus.NewDesc("slurm_nodes_down", "Down nodes", labels, nil),
+		drain: prometheus.NewDesc("slurm_nodes_drain", "Drain nodes", labels, nil),
+		err:   prometheus.NewDesc("slurm_nodes_err", "Error nodes", labels, nil),
+		fail:  prometheus.NewDesc("slurm_nodes_fail", "Fail nodes", labels, nil),
+		idle:  prometheus.NewDesc("slurm_nodes_idle", "Idle nodes", labels, nil),
+		maint: prometheus.NewDesc("slurm_nodes_maint", "Maint nodes", labels, nil),
+		mix:   prometheus.NewDesc("slurm_nodes_mix", "Mix nodes", labels, nil),
+		resv:  prometheus.NewDesc("slurm_nodes_resv", "Reserved nodes", labels, nil),
 	}
 }
 
@@ -171,14 +213,16 @@ func (nc *NodesCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 func (nc *NodesCollector) Collect(ch chan<- prometheus.Metric) {
 	nm := NodesGetMetrics()
-	ch <- prometheus.MustNewConstMetric(nc.alloc, prometheus.GaugeValue, nm.alloc)
-	ch <- prometheus.MustNewConstMetric(nc.comp, prometheus.GaugeValue, nm.comp)
-	ch <- prometheus.MustNewConstMetric(nc.down, prometheus.GaugeValue, nm.down)
-	ch <- prometheus.MustNewConstMetric(nc.drain, prometheus.GaugeValue, nm.drain)
-	ch <- prometheus.MustNewConstMetric(nc.err, prometheus.GaugeValue, nm.err)
-	ch <- prometheus.MustNewConstMetric(nc.fail, prometheus.GaugeValue, nm.fail)
-	ch <- prometheus.MustNewConstMetric(nc.idle, prometheus.GaugeValue, nm.idle)
-	ch <- prometheus.MustNewConstMetric(nc.maint, prometheus.GaugeValue, nm.maint)
-	ch <- prometheus.MustNewConstMetric(nc.mix, prometheus.GaugeValue, nm.mix)
-	ch <- prometheus.MustNewConstMetric(nc.resv, prometheus.GaugeValue, nm.resv)
+	for k := range nm {
+		ch <- prometheus.MustNewConstMetric(nc.alloc, prometheus.GaugeValue, nm[k].alloc, k)
+		ch <- prometheus.MustNewConstMetric(nc.comp, prometheus.GaugeValue, nm[k].comp, k)
+		ch <- prometheus.MustNewConstMetric(nc.down, prometheus.GaugeValue, nm[k].down, k)
+		ch <- prometheus.MustNewConstMetric(nc.drain, prometheus.GaugeValue, nm[k].drain, k)
+		ch <- prometheus.MustNewConstMetric(nc.err, prometheus.GaugeValue, nm[k].err, k)
+		ch <- prometheus.MustNewConstMetric(nc.fail, prometheus.GaugeValue, nm[k].fail, k)
+		ch <- prometheus.MustNewConstMetric(nc.idle, prometheus.GaugeValue, nm[k].idle, k)
+		ch <- prometheus.MustNewConstMetric(nc.maint, prometheus.GaugeValue, nm[k].maint, k)
+		ch <- prometheus.MustNewConstMetric(nc.mix, prometheus.GaugeValue, nm[k].mix, k)
+		ch <- prometheus.MustNewConstMetric(nc.resv, prometheus.GaugeValue, nm[k].resv, k)
+	}
 }
