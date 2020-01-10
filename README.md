@@ -95,20 +95,78 @@ cd prometheus-slurm-exporter
 export GOPATH=$(pwd):/usr/share/gocode
 ```
 
-3. Install all the necessary GOlang dependencies:
+3. Install all the necessary GOlang dependencies using the [Go modules](https://blog.golang.org/using-go-modules):
 ```bash
-go get github.com/prometheus/client_golang/prometheus
-go get github.com/sirupsen/logrus
-go get gopkg.in/alecthomas/kingpin.v2
+make test
+
+go: downloading github.com/prometheus/client_golang v1.2.1
+go: downloading github.com/prometheus/common v0.7.0
+go: extracting github.com/prometheus/common v0.7.0
+go: extracting github.com/prometheus/client_golang v1.2.1
+go: downloading github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4
+go: downloading github.com/prometheus/procfs v0.0.5
+go: downloading gopkg.in/alecthomas/kingpin.v2 v2.2.6
+go: extracting github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4
+go: extracting gopkg.in/alecthomas/kingpin.v2 v2.2.6
+go: downloading github.com/beorn7/perks v1.0.1
+go: downloading github.com/cespare/xxhash/v2 v2.1.0
+go: extracting github.com/cespare/xxhash/v2 v2.1.0
+go: extracting github.com/beorn7/perks v1.0.1
+go: downloading github.com/matttproud/golang_protobuf_extensions v1.0.1
+go: downloading github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4
+go: extracting github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4
+go: downloading github.com/golang/protobuf v1.3.2
+go: downloading github.com/sirupsen/logrus v1.4.2
+go: extracting github.com/matttproud/golang_protobuf_extensions v1.0.1
+go: extracting github.com/golang/protobuf v1.3.2
+go: downloading github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
+go: extracting github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
+go: extracting github.com/sirupsen/logrus v1.4.2
+go: downloading golang.org/x/sys v0.0.0-20191010194322-b09406accb47
+go: extracting golang.org/x/sys v0.0.0-20191010194322-b09406accb47
+go: extracting github.com/prometheus/procfs v0.0.5
+go: finding github.com/prometheus/common v0.7.0
+go: finding github.com/prometheus/client_golang v1.2.1
+go: finding github.com/sirupsen/logrus v1.4.2
+go: finding gopkg.in/alecthomas/kingpin.v2 v2.2.6
+go: finding github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4
+go: finding github.com/beorn7/perks v1.0.1
+go: finding github.com/cespare/xxhash/v2 v2.1.0
+go: finding github.com/matttproud/golang_protobuf_extensions v1.0.1
+go: finding github.com/golang/protobuf v1.3.2
+go: finding github.com/prometheus/procfs v0.0.5
+go: finding github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4
+go: finding github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
+go: finding golang.org/x/sys v0.0.0-20191010194322-b09406accb47
+=== RUN   TestCPUsMetrics
+--- PASS: TestCPUsMetrics (0.00s)
+    cpus_test.go:29: &{alloc:5725 idle:877 other:34 total:6636}
+=== RUN   TestCPUssGetMetrics
+--- PASS: TestCPUssGetMetrics (0.01s)
+    cpus_test.go:33: &{alloc:18956 idle:7852 other:12408 total:39216}
+=== RUN   TestNodesMetrics
+--- PASS: TestNodesMetrics (0.03s)
+    nodes_test.go:29: &{alloc:250 comp:0 down:67 drain:28 err:0 fail:1 idle:319 maint:0 mix:44 resv:0}
+=== RUN   TestNodesGetMetrics
+--- PASS: TestNodesGetMetrics (0.10s)
+    nodes_test.go:33: &{alloc:328 comp:0 down:230 drain:66 err:0 fail:0 idle:53 maint:0 mix:71 resv:0}
+=== RUN   TestParseQueueMetrics
+--- PASS: TestParseQueueMetrics (0.01s)
+    queue_test.go:29: &{pending:4 pending_dep:0 running:28 suspended:1 cancelled:1 completing:2 completed:1 configuring:1 failed:1 timeout:1 preempted:1 node_fail:1}
+=== RUN   TestQueueGetMetrics
+--- PASS: TestQueueGetMetrics (0.28s)
+    queue_test.go:33: &{pending:8280 pending_dep:3 running:7132 suspended:0 cancelled:1 completing:0 completed:180 configuring:0 failed:245 timeout:2 preempted:0 node_fail:0}
+=== RUN   TestSchedulerMetrics
+--- PASS: TestSchedulerMetrics (0.02s)
+    scheduler_test.go:29: &{threads:3 queue_size:0 last_cycle:97209 mean_cycle:74593 cycle_per_minute:63 backfill_last_cycle:1.94289e+06 backfill_mean_cycle:1.96082e+06 backfill_depth_mean:29324}
+=== RUN   TestSchedulerGetMetrics
+--- PASS: TestSchedulerGetMetrics (0.03s)
+    scheduler_test.go:33: &{threads:3 queue_size:0 last_cycle:20982 mean_cycle:32874 cycle_per_minute:23 backfill_last_cycle:991389 backfill_mean_cycle:1.7385e+06 backfill_depth_mean:11320}
+PASS
+ok      github.com/vpenso/prometheus-slurm-exporter     0.495s
 ```
 
-**NOTE**: all these packages will be saved under the ``src`` subdirectory of the Slurm exporter project.
-
-In some cases, the ``go get`` command may report the following message:
-```
-package github.com/[...]/[...]: no buildable Go source files
-```
-This should be considered harmless and it will not affect the build process.
+**NOTE**: all these packages will be saved under the ``src`` subdirectory of the Slurm exporter project unless your **GOPATH** is set in a different way (as explained at point 2).
 
 4. Build the executable:
 ```bash
