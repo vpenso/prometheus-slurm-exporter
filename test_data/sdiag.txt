@@ -23,6 +23,7 @@ Main schedule statistics (microseconds):
 Backfilling stats
         Total backfilled jobs (since last slurm start): 111544
         Total backfilled jobs (since last stats cycle start): 793
+        Total backfilled heterogeneous job components: 10
         Total cycles: 529
         Last cycle when: Wed Apr 12 11:03:21 2017
         Last cycle: 1942890
