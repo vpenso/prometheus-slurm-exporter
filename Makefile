@@ -5,7 +5,7 @@ GOBIN=bin/$(PROJECT_NAME)
 build:
 	mkdir -p $(shell pwd)/bin
 	@echo "Build $(GOFILES) to $(GOBIN)"
-	@GOPATH=$(GOPATH) go build -o $(GOBIN) $(GOFILES)
+	@GOPATH=$(GOPATH) go build -mod=vendor -o $(GOBIN) $(GOFILES)
 
 test:
 	@GOPATH=$(GOPATH) go test -v *.go
