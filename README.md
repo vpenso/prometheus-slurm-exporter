@@ -2,6 +2,11 @@
 
 Prometheus collector and exporter for metrics extracted from the [Slurm](https://slurm.schedmd.com/overview.html) resource scheduling system.
 
+Based on:
+https://github.com/vpenso/prometheus-slurm-exporter
+Taking some additions from:
+https://github.com/cea-hpc/slurm_exporter
+
 ## Exported Metrics
 
 ### State of the CPUs
