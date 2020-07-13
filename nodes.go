@@ -105,7 +105,7 @@ func ParseNodesMetrics(input []byte) *NodesMetrics {
 	return &nm
 }
 
-// Execute the squeue command and return its output
+// Execute the sinfo command and return its output
 func NodesData() []byte {
 	cmd := exec.Command("sinfo", "-h", "-o %n,%T")
 	stdout, err := cmd.StdoutPipe()
