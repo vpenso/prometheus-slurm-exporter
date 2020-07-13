@@ -52,6 +52,7 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 
 * **Server Thread count**: The number of current active ``slurmctld`` threads. 
 * **Queue size**: The length of the scheduler queue.
+* **DBD Agent queue size**: The length of the message queue for _SlurmDBD_.
 * **Last cycle**: Time in microseconds for last scheduling cycle.
 * **Mean cycle**: Mean of scheduling cycles since last reset.
 * **Cycles per minute**: Counter of scheduling executions per minute.
@@ -60,6 +61,12 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 * **(Backfill) Depth mean**: Mean of processed jobs during backfilling scheduling cycles since last reset.
 
 [Information extracted from the SLURM **sdiag** command](https://slurm.schedmd.com/sdiag.html)
+
+*DBD Agent queue size*: it is particularly important to keep track of it, since an increasing number of messages
+counted with this parameter almost always indicates three issues:
+* the _SlurmDBD_ daemon is down; 
+* the database is either down or unreachable;
+* the status of the Slurm accounting DB may be inconsistent (e.g. ``sreport`` missing data, weird utilization of the cluster, etc.).
 
 ## How to build an RPM package from the relases
 
