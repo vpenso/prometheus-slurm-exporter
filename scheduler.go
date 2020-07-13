@@ -35,6 +35,7 @@ import (
 type SchedulerMetrics struct {
   threads             float64
   queue_size          float64
+  dbd_queue_size      float64
   last_cycle          float64
   mean_cycle          float64
   cycle_per_minute    float64
@@ -59,7 +60,7 @@ func ParseSchedulerMetrics(input []byte) *SchedulerMetrics {
   var sm SchedulerMetrics
   lines := strings.Split(string(input),"\n")
   // Guard variables to check for string repetitions in the output of sdiag 
-  // (two 'Last cycle', two 'Mean cycle')
+  // (two occurencies of the following strings: 'Last cycle', 'Mean cycle')
   lc_count := 0
   mc_count := 0
   for _, line := range lines {
@@ -67,6 +68,7 @@ func ParseSchedulerMetrics(input []byte) *SchedulerMetrics {
                   state := strings.Split(line, ":")[0]
                   st  := regexp.MustCompile(`^Server thread`)
                   qs  := regexp.MustCompile(`^Agent queue`)
+		  dbd := regexp.MustCompile(`^DBD Agent`)
 		  lc  := regexp.MustCompile(`^[\s]+Last cycle$`) 
 		  mc  := regexp.MustCompile(`^[\s]+Mean cycle$`)
                   cpm := regexp.MustCompile(`^[\s]+Cycles per`)
@@ -76,6 +78,8 @@ func ParseSchedulerMetrics(input []byte) *SchedulerMetrics {
 			     sm.threads, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
                     case qs.MatchString(state) == true:
                              sm.queue_size, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
+                    case dbd.MatchString(state) == true:
+                             dbd.dbd_queue_size, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
                     case lc.MatchString(state) == true:
                              if lc_count == 0 {
                                 sm.last_cycle, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
@@ -118,6 +122,7 @@ func SchedulerGetMetrics() *SchedulerMetrics {
 type SchedulerCollector struct {
   threads             *prometheus.Desc
   queue_size          *prometheus.Desc
+  dbd_queue_size      *prometheus.Desc
   last_cycle          *prometheus.Desc
   mean_cycle          *prometheus.Desc
   cycle_per_minute    *prometheus.Desc
@@ -130,6 +135,7 @@ type SchedulerCollector struct {
 func (c *SchedulerCollector) Describe(ch chan<- *prometheus.Desc) {
   ch <- c.threads
   ch <- c.queue_size
+  ch <- c.dbd_queue_size
   ch <- c.last_cycle
   ch <- c.mean_cycle
   ch <- c.cycle_per_minute
@@ -143,6 +149,7 @@ func (sc *SchedulerCollector) Collect(ch chan<- prometheus.Metric) {
   sm := SchedulerGetMetrics()
   ch <- prometheus.MustNewConstMetric(sc.threads, prometheus.GaugeValue, sm.threads)
   ch <- prometheus.MustNewConstMetric(sc.queue_size, prometheus.GaugeValue, sm.queue_size)
+  ch <- prometheus.MustNewConstMetric(sc.dbd_queue_size, prometheus.GaugeValue, sm.dbd_queue_size)
   ch <- prometheus.MustNewConstMetric(sc.last_cycle, prometheus.GaugeValue, sm.last_cycle)
   ch <- prometheus.MustNewConstMetric(sc.mean_cycle, prometheus.GaugeValue, sm.mean_cycle)
   ch <- prometheus.MustNewConstMetric(sc.cycle_per_minute, prometheus.GaugeValue, sm.cycle_per_minute)
@@ -162,6 +169,11 @@ func NewSchedulerCollector() *SchedulerCollector {
     queue_size: prometheus.NewDesc(
       "slurm_scheduler_queue_size",
       "Information provided by the Slurm sdiag command, length of the scheduler queue",
+      nil,
+      nil),
+    dbd_queue_size: prometheus.NewDesc(
+      "slurm_scheduler_dbd_queue_size",
+      "Information provided by the Slurm sdiag command, length of the DBD agent queue",
       nil,
       nil),
     last_cycle: prometheus.NewDesc(
