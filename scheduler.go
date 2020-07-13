@@ -79,7 +79,7 @@ func ParseSchedulerMetrics(input []byte) *SchedulerMetrics {
                     case qs.MatchString(state) == true:
                              sm.queue_size, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
                     case dbd.MatchString(state) == true:
-                             dbd.dbd_queue_size, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
+                             sm.dbd_queue_size, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
                     case lc.MatchString(state) == true:
                              if lc_count == 0 {
                                 sm.last_cycle, _ = strconv.ParseFloat(strings.TrimSpace(strings.Split(line, ":")[1]), 64)
