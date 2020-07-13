@@ -2,8 +2,10 @@
 sdiag output at Wed Apr 12 11:04:01 2017
 Data since      Wed Apr 12 02:00:00 2017
 *******************************************************
-Server thread count: 3
-Agent queue size:    0
+Server thread count:  3
+Agent queue size:     0
+Agent count:          0
+DBD Agent queue size: 0
 
 Jobs submitted: 9706
 Jobs started:   35395
