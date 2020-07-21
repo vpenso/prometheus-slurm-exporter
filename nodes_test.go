@@ -16,19 +16,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
-  "testing"
-  "os"
-  "io/ioutil"
+	"io/ioutil"
+	"os"
+	"testing"
 )
 
 func TestNodesMetrics(t *testing.T) {
-  // Read the input data from a file
-  file, err := os.Open("test_data/sinfo.txt")
-  if err != nil { t.Fatalf("Can not open test data: %v", err) }
-  data, err := ioutil.ReadAll(file)
-  t.Logf("%+v", ParseNodesMetrics(data))
+	// Read the input data from a file
+	file, err := os.Open("test_data/sinfo.txt")
+	if err != nil {
+		t.Fatalf("Can not open test data: %v", err)
+	}
+	data, err := ioutil.ReadAll(file)
+	t.Logf("%+v", ParseNodesMetrics(data))
 }
 
 func TestNodesGetMetrics(t *testing.T) {
-  t.Logf("%+v", NodesGetMetrics())
+	t.Logf("%+v", NodesGetMetrics())
 }

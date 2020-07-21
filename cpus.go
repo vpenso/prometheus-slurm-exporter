@@ -38,12 +38,12 @@ func CPUsGetMetrics() *CPUsMetrics {
 func ParseCPUsMetrics(input []byte) *CPUsMetrics {
 	var cm CPUsMetrics
 	if strings.Contains(string(input), "/") {
-	    splitted := strings.Split(strings.TrimSpace(string(input)), "/")
-	    cm.alloc, _ = strconv.ParseFloat(splitted[0], 64)
-	    cm.idle, _  = strconv.ParseFloat(splitted[1], 64)
-	    cm.other, _ = strconv.ParseFloat(splitted[2], 64)
-	    cm.total, _ = strconv.ParseFloat(splitted[3], 64)
-	} 
+		splitted := strings.Split(strings.TrimSpace(string(input)), "/")
+		cm.alloc, _ = strconv.ParseFloat(splitted[0], 64)
+		cm.idle, _ = strconv.ParseFloat(splitted[1], 64)
+		cm.other, _ = strconv.ParseFloat(splitted[2], 64)
+		cm.total, _ = strconv.ParseFloat(splitted[3], 64)
+	}
 	return &cm
 }
 
@@ -96,7 +96,7 @@ func (cc *CPUsCollector) Describe(ch chan<- *prometheus.Desc) {
 func (cc *CPUsCollector) Collect(ch chan<- prometheus.Metric) {
 	cm := CPUsGetMetrics()
 	ch <- prometheus.MustNewConstMetric(cc.alloc, prometheus.GaugeValue, cm.alloc)
-	ch <- prometheus.MustNewConstMetric(cc.idle,  prometheus.GaugeValue, cm.idle)
+	ch <- prometheus.MustNewConstMetric(cc.idle, prometheus.GaugeValue, cm.idle)
 	ch <- prometheus.MustNewConstMetric(cc.other, prometheus.GaugeValue, cm.other)
 	ch <- prometheus.MustNewConstMetric(cc.total, prometheus.GaugeValue, cm.total)
 }
