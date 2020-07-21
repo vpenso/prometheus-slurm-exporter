@@ -233,17 +233,17 @@ func NewSchedulerCollector() *SchedulerCollector {
 			nil,
 			nil),
 		total_backfilled_jobs_since_start: prometheus.NewDesc(
-			"slurm_backfilled_jobs_since_start_total",
+			"slurm_scheduler_backfilled_jobs_since_start_total",
 			"Information provided by the Slurm sdiag command, number of jobs started thanks to backfilling since last slurm start",
 			nil,
 			nil),
 		total_backfilled_jobs_since_cycle: prometheus.NewDesc(
-			"slurm_backfilled_jobs_since_cycle_total",
+			"slurm_scheduler_backfilled_jobs_since_cycle_total",
 			"Information provided by the Slurm sdiag command, number of jobs started thanks to backfilling since last time stats where reset",
 			nil,
 			nil),
 		total_backfilled_heterogeneous: prometheus.NewDesc(
-			"slurm_backfilled_heterogeneous_total",
+			"slurm_scheduler_backfilled_heterogeneous_total",
 			"Information provided by the Slurm sdiag command, number of heterogeneous job components started thanks to backfilling since last Slurm start",
 			nil,
 			nil),
