@@ -59,6 +59,9 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 * **(Backfill) Last cycle**: Time in microseconds of last backfilling cycle.
 * **(Backfill) Mean cycle**: Mean of backfilling scheduling cycles in microseconds since last reset.
 * **(Backfill) Depth mean**: Mean of processed jobs during backfilling scheduling cycles since last reset.
+* **(Backfill) Total Backfilled Jobs** (since last slurm start): number of jobs started thanks to backfilling since last Slurm start.
+* **(Backfill) Total Backfilled Jobs** (since last stats cycle start): number of jobs started thanks to backfilling since last time stats where reset.
+* **(Backfill) Total backfilled heterogeneous Job components**: number of heterogeneous job components started thanks to backfilling since last Slurm start.
 
 [Information extracted from the SLURM **sdiag** command](https://slurm.schedmd.com/sdiag.html)
 
