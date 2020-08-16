@@ -1,0 +1,27 @@
+name: prometheus-slurm-exporter
+summary: Prometheus Slurm Exporter
+description: |
+  Prometheus collector and exporter for metrics extracted from the Slurm resource scheduling system.
+
+adopt-info: prometheus-slurm-exporter
+
+grade: stable
+confinement: classic
+
+base: core20
+
+apps:
+  prometheus-slurm-exporter:
+    daemon: simple
+    environment:
+      PATH: $PATH:/snap/bin
+    command: bin/prometheus-slurm-exporter
+
+parts:
+  prometheus-slurm-exporter:
+    source: https://github.com/vpenso/prometheus-slurm-exporter.git
+    plugin: go
+    go-channel: 1.14/stable
+    override-build: |
+      snapcraftctl build
+      snapcraftctl set-version `git describe --tags`
