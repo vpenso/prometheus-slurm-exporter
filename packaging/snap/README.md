@@ -28,7 +28,7 @@ $ ls -la *.snap
 ```bash
 sudo snap install prometheus-slurm-exporter_`git describe --tags`_amd64.snap --classic --dangerous
 ```
-* `--classic` - this snap need runs in classic mode to allow it to find the slurm commands in the system.
+* `--classic` - this snap uses classic confinement to allow it to find the slurm commands in the system.
 * `--dangerous` - because we are installing this snap from a local resource and sha can't be verified by the snapstore.
 
 ### Verify install
