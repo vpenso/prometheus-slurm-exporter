@@ -75,6 +75,10 @@ counted with this parameter almost always indicates three issues:
 
 Consult the [following document](packaging/rpm/README.md) under the ``packaging/rpm`` subdirectory.
 
+## Distribute the exporter as a Snap package
+
+Consult the [following document](packaging/snap/README.md). **NOTE**: this method requires the use of [Snap](https://snapcraft.io), which is built by [Canonical](https://canonical.com).
+
 ## How to build the exporter from the sources
 
 ### Debian
