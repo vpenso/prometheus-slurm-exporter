@@ -22,6 +22,7 @@ import (
 	"os/exec"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -67,7 +68,9 @@ func ParseNodesMetrics(input []byte) *NodesMetrics {
 
 	for _, line := range lines_uniq {
 		if strings.Contains(line, ",") {
-			state := strings.Split(line, ",")[1]
+			split := strings.Split(line, ",")
+			count, _ := strconv.ParseFloat(strings.TrimSpace(split[0]), 64)
+			state := split[1]
 			alloc := regexp.MustCompile(`^alloc`)
 			comp := regexp.MustCompile(`^comp`)
 			down := regexp.MustCompile(`^down`)
@@ -80,25 +83,25 @@ func ParseNodesMetrics(input []byte) *NodesMetrics {
 			resv := regexp.MustCompile(`^res`)
 			switch {
 			case alloc.MatchString(state) == true:
-				nm.alloc++
+				nm.alloc += count
 			case comp.MatchString(state) == true:
-				nm.comp++
+				nm.comp += count
 			case down.MatchString(state) == true:
-				nm.down++
+				nm.down += count
 			case drain.MatchString(state) == true:
-				nm.drain++
+				nm.drain += count
 			case fail.MatchString(state) == true:
-				nm.fail++
+				nm.fail += count
 			case err.MatchString(state) == true:
-				nm.err++
+				nm.err += count
 			case idle.MatchString(state) == true:
-				nm.idle++
+				nm.idle += count
 			case maint.MatchString(state) == true:
-				nm.maint++
+				nm.maint += count
 			case mix.MatchString(state) == true:
-				nm.mix++
+				nm.mix += count
 			case resv.MatchString(state) == true:
-				nm.resv++
+				nm.resv += count
 			}
 		}
 	}
@@ -107,7 +110,7 @@ func ParseNodesMetrics(input []byte) *NodesMetrics {
 
 // Execute the sinfo command and return its output
 func NodesData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-o %n,%T")
+	cmd := exec.Command("sinfo", "-h", "-o %D,%T")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
