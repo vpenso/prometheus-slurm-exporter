@@ -80,6 +80,8 @@ Exporter. After a successful build copy the executable
 interface. A [Systemd Unit][sdu] file to run the executable as service is
 available in [lib/systemd/prometheus-slurm-exporter.service](lib/systemd/prometheus-slurm-exporter.service).
 
+[sdu]: https://www.freedesktop.org/software/systemd/man/systemd.service.html
+
 ## Prometheus Configuration for the SLURM exporter
 
 It is strongly advisable to configure the Prometheus server with the following parameters:
