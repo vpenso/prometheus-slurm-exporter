@@ -71,13 +71,6 @@ counted with this parameter almost always indicates three issues:
 * the database is either down or unreachable;
 * the status of the Slurm accounting DB may be inconsistent (e.g. ``sreport`` missing data, weird utilization of the cluster, etc.).
 
-## How to build an RPM package from the relases
-
-Consult the [following document](packaging/rpm/README.md) under the ``packaging/rpm`` subdirectory.
-
-## Distribute the exporter as a Snap package
-
-Consult the [following document](packaging/snap/README.md). **NOTE**: this method requires the use of [Snap](https://snapcraft.io), which is built by [Canonical](https://canonical.com).
 
 ## Installation
 
