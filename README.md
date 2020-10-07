@@ -121,13 +121,6 @@ The following are screenshots of the dashboard:
 ![Status of the Jobs](images/Job_Status.png)
 ![SLURM Scheduler Information](images/Scheduler_Info.png)
 
-## Prometheus references
-
-* [GOlang Package Documentation](https://godoc.org/github.com/prometheus/client_golang/prometheus)
-* [Metric Types](https://prometheus.io/docs/concepts/metric_types/)
-* [Writing Exporters](https://prometheus.io/docs/instrumenting/writing_exporters/)
-* [Available Exporters](https://prometheus.io/docs/instrumenting/exporters/)
-
 
 ## License
 
