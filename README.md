@@ -117,18 +117,19 @@ Checking prometheus.yml
 
 ## Grafana Dashboard
 
-A [dashboard](https://grafana.com/dashboards/4323) is available in order to visualize the exported metrics through [Grafana](https://grafana.com).
-
-The following are screenshots of the dashboard:
+A [dashboard](https://grafana.com/dashboards/4323) is available in order to
+visualize the exported metrics through [Grafana](https://grafana.com):
 
 ![Status of the Nodes](images/Node_Status.png)
+
 ![Status of the Jobs](images/Job_Status.png)
+
 ![SLURM Scheduler Information](images/Scheduler_Info.png)
 
 
 ## License
 
-Copyright 2017 Victor Penso, Matteo Dessalvi
+Copyright 2017-2020 Victor Penso, Matteo Dessalvi
 
 This is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 

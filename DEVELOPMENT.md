@@ -42,14 +42,6 @@ bin/prometheus-slurm-exporter
 curl http://localhost:8080/metrics
 ```
 
-### Tests
-
-Run all tests included in `_test.go` files:
-
-```bash
-go test -v *.go
-```
-
 ### Development
 
 References:
@@ -59,5 +51,8 @@ References:
 * [Writing Exporters](https://prometheus.io/docs/instrumenting/writing_exporters/)
 * [Available Exporters](https://prometheus.io/docs/instrumenting/exporters/)
 
+Run all tests included in `_test.go` files:
 
-<https://prometheus.io/docs/instrumenting/writing_exporters>
+```bash
+go test -v *.go
+```
