@@ -1,3 +1,8 @@
+## Development
+
+Setup the development environment on a node with access to the Slurm user
+commnad-line interface, in particular with the `sinfo` and `squeue` commands.
+
 Install Go from source:
 
 ```bash
@@ -7,7 +12,10 @@ tar -xzvf go$VERSION.$OS-$ARCH.tar.gz
 export PATH=$PWD/go/bin:$PATH
 ```
 
-Development:
+_Alternatively install Go from a package of your Linux distribution._
+
+Use Git to clone the source code the exporter, and download all Go dependency
+libraries:
 
 ```bash
 # clone the source code
@@ -18,9 +26,9 @@ export GOPATH=$PWD/go/modules
 go mod download
 ```
 
-Build and executer the exporter:
+### Build
 
-```
+```bash
 # build the exporter
 go build -o bin/prometheus-slurm-exporter {main,cpus,nodes,queue,scheduler}.go
 # start the exporter (foreground)
