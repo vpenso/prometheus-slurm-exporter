@@ -23,7 +23,7 @@ import (
 )
 
 func AccountsData() []byte {
-        cmd := exec.Command("squeue", "-o '%A|%a|%u|%T|%C'")
+        cmd := exec.Command("squeue", "-h", "-o '%A|%a|%T'")
         stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
@@ -39,15 +39,30 @@ func AccountsData() []byte {
 }
 
 type AccountMetrics struct {
-        jobs float64
+        resv float64
 }
 
-func ParseAccountsMetrics(input []byte) map[string]*AccountMetrics {
-        accounts := make(map[string]*AccountMetrics)
+func ParseAccountsMetrics(input []byte) map[string]map[string]int {
+        accounts := make(map[string]map[string]int)
         lines := strings.Split(string(input), "\n")
         for _, line := range lines {
                 if strings.Contains(line,"|") {
-                        log.Debug(line)
+                        log.Print(line)
+
+                        account := strings.Split(line,"|")[1]
+                        _,key := accounts[account]
+                        if !key {
+                                accounts[account] = make(map[string]int)
+                        }
+
+                        state := strings.Split(line,"|")[2]
+                        state = strings.ToLower(state)
+                        _,key = accounts[account][state]
+                        if !key {
+                                accounts[account][state] = 1
+                        } else {
+                                accounts[account][state] += 1
+                        }
                 }
         }
         return accounts
