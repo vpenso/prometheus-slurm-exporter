@@ -74,7 +74,11 @@ counted with this parameter almost always indicates three issues:
 
 ## Installation
 
-After successfully ran ``make``, you will have a binary called ``prometheus-slurm-exporter`` under the ``bin/`` subdirectory in your local copy of this repository. You can now copy this binary wherever you have installed the Slurm utilities (sinfo,squeue, sdiag) and then put it into execution, either interactively or through a Systemd unit (an example is available [here](lib/systemd/prometheus-slurm-exporter.service)).
+Read [DEVELOPMENT.md](DEVELOPMENT.md) in order to build the Prometheus Slurm
+Exporter. After a successful build copy the executable
+`bin/prometheus-slurm-exporte` to a node with access to the Slurm command-line
+interface. A [Systemd Unit][sdu] file to run the executable as service is
+available in [lib/systemd/prometheus-slurm-exporter.service](lib/systemd/prometheus-slurm-exporter.service).
 
 ## Prometheus Configuration for the SLURM exporter
 
