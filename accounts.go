@@ -78,8 +78,8 @@ type AccountsCollector struct {
 func NewAccountsCollector() *AccountsCollector {
         labels := []string{"account"}
         return &AccountsCollector{
-                running: prometheus.NewDesc("slurm_accounts_jobs_running", "Running jobs for account", labels, nil),
-                pending: prometheus.NewDesc("slurm_accounts_jobs_pending", "Running jobs for account", labels, nil),
+                running: prometheus.NewDesc("slurm_account_jobs_running", "Running jobs for account", labels, nil),
+                pending: prometheus.NewDesc("slurm_account_jobs_pending", "Pending jobs for account", labels, nil),
         }
 }
 
