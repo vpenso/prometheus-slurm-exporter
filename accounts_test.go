@@ -22,3 +22,4 @@ import (
 func TestParseAccountsMetrics(t *testing.T) {
 	t.Logf("%+v", ParseAccountsMetrics(AccountsData()))
 }
+

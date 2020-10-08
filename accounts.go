@@ -20,6 +20,8 @@ import (
         "os/exec"
         "log"
         "strings"
+        "regexp"
+        "github.com/prometheus/client_golang/prometheus"
 )
 
 func AccountsData() []byte {
@@ -38,33 +40,59 @@ func AccountsData() []byte {
 	return out
 }
 
-type AccountMetrics struct {
-        resv float64
+type JobMetrics struct {
+        pending float64
+        running float64
 }
 
-func ParseAccountsMetrics(input []byte) map[string]map[string]int {
-        accounts := make(map[string]map[string]int)
+func ParseAccountsMetrics(input []byte) map[string]*JobMetrics {
+        accounts := make(map[string]*JobMetrics)
         lines := strings.Split(string(input), "\n")
         for _, line := range lines {
                 if strings.Contains(line,"|") {
-                        log.Print(line)
-
                         account := strings.Split(line,"|")[1]
                         _,key := accounts[account]
                         if !key {
-                                accounts[account] = make(map[string]int)
+                                accounts[account] = &JobMetrics{0,0}
                         }
-
                         state := strings.Split(line,"|")[2]
                         state = strings.ToLower(state)
-                        _,key = accounts[account][state]
-                        if !key {
-                                accounts[account][state] = 1
-                        } else {
-                                accounts[account][state] += 1
+                        running := regexp.MustCompile(`^running`)
+                        pending := regexp.MustCompile(`^pending`)
+                        switch {
+                        case running.MatchString(state) == true:
+                                accounts[account].running++
+                        case pending.MatchString(state) == true:
+                                accounts[account].pending++
                         }
                 }
         }
         return accounts
 }
 
+type AccountsCollector struct {
+        running *prometheus.Desc
+        pending *prometheus.Desc
+}
+
+func NewAccountsCollector() *AccountsCollector {
+        labels := []string{"account"}
+        return &AccountsCollector{
+                running: prometheus.NewDesc("slurm_accounts_jobs_running", "Running jobs for account", labels, nil),
+                pending: prometheus.NewDesc("slurm_accounts_jobs_pending", "Running jobs for account", labels, nil),
+        }
+}
+
+func (ac *AccountsCollector) Describe(ch chan<- *prometheus.Desc) {
+        ch <- ac.running
+        ch <- ac.pending
+}
+
+func (ac *AccountsCollector) Collect(ch chan<- prometheus.Metric) {
+        am := ParseAccountsMetrics(AccountsData())
+        for a := range am {
+                log.Print(a)
+                ch <- prometheus.MustNewConstMetric(ac.running, prometheus.GaugeValue, am[a].running, a)
+                ch <- prometheus.MustNewConstMetric(ac.pending, prometheus.GaugeValue, am[a].pending, a)
+        }
+}

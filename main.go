@@ -1,4 +1,4 @@
-/* Copyright 2017 Victor Penso, Matteo Dessalvi
+/* Copyright 2017-2020 Victor Penso, Matteo Dessalvi
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ func init() {
 	prometheus.MustRegister(NewQueueCollector())     // from queue.go
 	prometheus.MustRegister(NewNodesCollector())     // from nodes.go
 	prometheus.MustRegister(NewCPUsCollector())      // from cpus.go
+	prometheus.MustRegister(NewAccountsCollector())  // from accounts.go
 }
 
 var listenAddress = flag.String(
