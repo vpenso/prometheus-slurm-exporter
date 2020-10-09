@@ -30,6 +30,7 @@ func init() {
 	prometheus.MustRegister(NewNodesCollector())     // from nodes.go
 	prometheus.MustRegister(NewCPUsCollector())      // from cpus.go
 	prometheus.MustRegister(NewAccountsCollector())  // from accounts.go
+	prometheus.MustRegister(NewUsersCollector())     // from users.go
 }
 
 var listenAddress = flag.String(
