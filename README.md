@@ -48,6 +48,13 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 
 [Information extracted from the SLURM **squeue** command](https://slurm.schedmd.com/squeue.html)
 
+### Jobs information per Account and UserID
+
+The following information about jobs are also extracted via [squeue](https://slurm.schedmd.com/squeue.html):
+
+* **Running/Pending/Suspended** jobs per SLURM Account.
+* **Running/Pending/Suspended** jobs per SLURM User.
+
 ### Scheduler Information
 
 * **Server Thread count**: The number of current active ``slurmctld`` threads. 

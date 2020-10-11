@@ -2,16 +2,16 @@ Setup the development environment on a node with access to the Slurm user
 command-line interface, in particular with the `sinfo`, `squeue`, and `sdiag`
 commands.
 
-Install Go from source:
+### Install Go from source
 
 ```bash
-export VERSION=1.13 OS=linux ARCH=amd64
+export VERSION=1.15 OS=linux ARCH=amd64
 wget https://dl.google.com/go/go$VERSION.$OS-$ARCH.tar.gz
 tar -xzvf go$VERSION.$OS-$ARCH.tar.gz
 export PATH=$PWD/go/bin:$PATH
 ```
 
-_Alternatively install Go from a package of your Linux distribution._
+_Alternatively install Go using the packaging system of your Linux distribution._
 
 Use Git to clone the source code of the exporter, and download all Go dependency
 modules:
@@ -30,7 +30,13 @@ go mod download
 Build the exporter:
 
 ```bash
-go build -o bin/prometheus-slurm-exporter {main,cpus,nodes,queue,scheduler}.go
+go build -o bin/prometheus-slurm-exporter {main,accounts,cpus,nodes,queue,scheduler,users}.go
+```
+
+Run all tests included in `_test.go` files:
+
+```bash
+go test -v *.go
 ```
 
 Start the exporter (foreground), and query all metrics:
@@ -51,8 +57,3 @@ References:
 * [Writing Exporters](https://prometheus.io/docs/instrumenting/writing_exporters/)
 * [Available Exporters](https://prometheus.io/docs/instrumenting/exporters/)
 
-Run all tests included in `_test.go` files:
-
-```bash
-go test -v *.go
-```
