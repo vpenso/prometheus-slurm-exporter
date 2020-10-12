@@ -1,0 +1,91 @@
+/* Copyright 2020 Victor Penso
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
+package main
+
+import (
+        "io/ioutil"
+        "os/exec"
+        "log"
+        "strings"
+	"strconv"
+        "github.com/prometheus/client_golang/prometheus"
+)
+
+func PartitionsData() []byte {
+        cmd := exec.Command("sinfo", "-h", "-o%R,%C")
+        stdout, err := cmd.StdoutPipe()
+        if err != nil {
+                log.Fatal(err)
+        }
+        if err := cmd.Start(); err != nil {
+                log.Fatal(err)
+        }
+        out, _ := ioutil.ReadAll(stdout)
+        if err := cmd.Wait(); err != nil {
+                log.Fatal(err)
+        }
+        return out
+}
+
+type PartitionMetrics struct {
+        allocated float64
+        idle float64
+        other float64
+        total float64
+}
+
+func ParsePartitionsMetrics(input []byte) map[string]*PartitionMetrics {
+        partitions := make(map[string]*PartitionMetrics)
+        lines := strings.Split(string(input), "\n")
+        for _, line := range lines {
+                if strings.Contains(line,",") {
+                        // name of a partition
+                        partition := strings.Split(line,",")[0]
+                        _,key := partitions[partition]
+                        if !key {
+                                partitions[partition] = &PartitionMetrics{0,0,0,0}
+                        }
+                        states := strings.Split(line,",")[1]
+			allocated,_ := strconv.ParseFloat(strings.Split(states,"/")[0],64)
+                        partitions[partition].allocated = allocated
+                }
+        }
+        return partitions
+}
+
+type PartitionsCollector struct {
+        allocated *prometheus.Desc
+}
+
+func NewPartitionsCollector() *PartitionsCollector {
+        labels := []string{"partition"}
+        return &PartitionsCollector{
+                allocated: prometheus.NewDesc("slurm_partition_cpus_allocated", "Allocated CPUs for partition", labels,nil),
+        }
+}
+
+func (pc *PartitionsCollector) Describe(ch chan<- *prometheus.Desc) {
+        ch <- pc.allocated
+}
+
+func (pc *PartitionsCollector) Collect(ch chan<- prometheus.Metric) {
+        pm := ParsePartitionsMetrics(PartitionsData())
+        for p := range pm {
+                if pm[p].allocated > 0 {
+                        ch <- prometheus.MustNewConstMetric(pc.allocated, prometheus.GaugeValue, pm[p].allocated, p)
+                }
+        }
+}
