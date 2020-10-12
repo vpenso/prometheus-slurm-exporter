@@ -105,9 +105,17 @@ func (ac *AccountsCollector) Describe(ch chan<- *prometheus.Desc) {
 func (ac *AccountsCollector) Collect(ch chan<- prometheus.Metric) {
         am := ParseAccountsMetrics(AccountsData())
         for a := range am {
-                ch <- prometheus.MustNewConstMetric(ac.pending, prometheus.GaugeValue, am[a].pending, a)
-                ch <- prometheus.MustNewConstMetric(ac.running, prometheus.GaugeValue, am[a].running, a)
-                ch <- prometheus.MustNewConstMetric(ac.running_cpus, prometheus.GaugeValue, am[a].running_cpus, a)
-                ch <- prometheus.MustNewConstMetric(ac.suspended, prometheus.GaugeValue, am[a].suspended, a)
+                if am[a].pending > 0 {
+                        ch <- prometheus.MustNewConstMetric(ac.pending, prometheus.GaugeValue, am[a].pending, a)
+                }
+                if am[a].running > 0 {
+                        ch <- prometheus.MustNewConstMetric(ac.running, prometheus.GaugeValue, am[a].running, a)
+                }
+                if am[a].running_cpus > 0 {
+                        ch <- prometheus.MustNewConstMetric(ac.running_cpus, prometheus.GaugeValue, am[a].running_cpus, a)
+                }
+                if am[a].suspended > 0 {
+                        ch <- prometheus.MustNewConstMetric(ac.suspended, prometheus.GaugeValue, am[a].suspended, a)
+                }
         }
 }
