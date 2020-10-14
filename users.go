@@ -26,7 +26,7 @@ import (
 )
 
 func UsersData() []byte {
-        cmd := exec.Command("squeue", "-h", "-o %A|%u|%T|%C")
+        cmd := exec.Command("squeue","-a","-r","-h","-o %A|%u|%T|%C")
         stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
