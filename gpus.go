@@ -71,6 +71,7 @@ func ParseTotalGPUs() float64 {
 				node_gpus, err :=  strconv.ParseFloat(descriptor, 64)
 				log.Infof("Number of GPUs %f", node_gpus)
 				if err != nil {
+					log.Infof("Adding GPUs %f", node_gpus)
 					num_gpus += node_gpus
 				}
 			}
