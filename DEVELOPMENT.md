@@ -30,7 +30,7 @@ go mod download
 Build the exporter:
 
 ```bash
-go build -o bin/prometheus-slurm-exporter {main,accounts,cpus,nodes,queue,scheduler,users}.go
+go build -o bin/prometheus-slurm-exporter {main,accounts,cpus,gpus,nodes,queue,scheduler,users}.go
 ```
 
 Run all tests included in `_test.go` files:
@@ -56,4 +56,3 @@ References:
 * [Metric Types](https://prometheus.io/docs/concepts/metric_types/)
 * [Writing Exporters](https://prometheus.io/docs/instrumenting/writing_exporters/)
 * [Available Exporters](https://prometheus.io/docs/instrumenting/exporters/)
-
