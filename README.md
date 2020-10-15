@@ -14,6 +14,16 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 - [Information extracted from the SLURM **sinfo** command](https://slurm.schedmd.com/sinfo.html)
 - [Slurm CPU Management User and Administrator Guide](https://slurm.schedmd.com/cpu_management.html)
 
+### State of the GPUs
+
+* **Allocated**: GPUs which have been allocated to a job.
+* **Idle**: GPUs not allocated to a job and thus available for use.
+* **Other**: GPUs which are unavailable for use at the moment.
+* **Total**: total number of GPUs.
+
+- [Information extracted from the SLURM **sinfo** command](https://slurm.schedmd.com/sinfo.html)
+- [Slurm GRES scheduling](https://slurm.schedmd.com/gres.html)
+
 ### State of the Nodes
 
 * **Allocated**: nodes which has been allocated to one or more jobs.
@@ -57,7 +67,7 @@ The following information about jobs are also extracted via [squeue](https://slu
 
 ### Scheduler Information
 
-* **Server Thread count**: The number of current active ``slurmctld`` threads. 
+* **Server Thread count**: The number of current active ``slurmctld`` threads.
 * **Queue size**: The length of the scheduler queue.
 * **DBD Agent queue size**: The length of the message queue for _SlurmDBD_.
 * **Last cycle**: Time in microseconds for last scheduling cycle.
@@ -74,7 +84,7 @@ The following information about jobs are also extracted via [squeue](https://slu
 
 *DBD Agent queue size*: it is particularly important to keep track of it, since an increasing number of messages
 counted with this parameter almost always indicates three issues:
-* the _SlurmDBD_ daemon is down; 
+* the _SlurmDBD_ daemon is down;
 * the database is either down or unreachable;
 * the status of the Slurm accounting DB may be inconsistent (e.g. ``sreport`` missing data, weird utilization of the cluster, etc.).
 
@@ -82,7 +92,7 @@ counted with this parameter almost always indicates three issues:
 ## Installation
 
 * Read [DEVELOPMENT.md](DEVELOPMENT.md) in order to build the Prometheus Slurm Exporter. After a successful build copy the executable
-`bin/prometheus-slurm-exporter` to a node with access to the Slurm command-line interface. 
+`bin/prometheus-slurm-exporter` to a node with access to the Slurm command-line interface.
 
 * A [Systemd Unit][sdu] file to run the executable as service is available in [lib/systemd/prometheus-slurm-exporter.service](lib/systemd/prometheus-slurm-exporter.service).
 
@@ -99,7 +109,7 @@ scrape_configs:
 
 #
 # SLURM resource manager:
-# 
+#
   - job_name: 'my_slurm_exporter'
 
     scrape_interval:  30s
@@ -146,5 +156,3 @@ This is free software: you can redistribute it and/or modify it under the terms 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/.
-
-
