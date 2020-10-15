@@ -25,10 +25,10 @@ import (
 )
 
 type GPUsMetrics struct {
-	alloc float64
-	idle  float64
-	other float64
-	total float64
+	alloc       float64
+	idle        float64
+	total       float64
+	utilization float64
 }
 
 func GPUsGetMetrics() *GPUsMetrics {
@@ -36,15 +36,24 @@ func GPUsGetMetrics() *GPUsMetrics {
 }
 
 func ParseAllocatedGPUs() float64 {
-	return 0.0 // TODO Implement
-}
+	var num_gpus = 0.0
 
-func ParseIdleGPUs() float64 {
-	return 0.0 // TOOD Implement
-}
+	args := []string{"-a", "-X", "--format=Allocgres", "--state=RUNNING", "--noheader", "--parsable2"}
+	output := string(Execute("sacct", args))
+	if len(output) > 0 {
+		for _, line := range strings.Split(output, "\n") {
+			if len(line) > 0 {
+				line = strings.Trim(line, "\"")
+				descriptor := strings.TrimPrefix(line, "gpu:")
+				job_gpus, err := strconv.ParseFloat(descriptor, 64)
+				if err != nil {
+					num_gpus += job_gpus
+				}
+			}
+		}
+	}
 
-func ParseOtherGPUs() float64 {
-	return 0.0 // TODO Implement
+	return num_gpus
 }
 
 func ParseTotalGPUs() float64 {
@@ -72,10 +81,12 @@ func ParseTotalGPUs() float64 {
 
 func ParseGPUsMetrics() *GPUsMetrics {
 	var gm GPUsMetrics
-	gm.alloc = ParseAllocatedGPUs()
-	gm.idle = ParseIdleGPUs()
-	gm.other = ParseOtherGPUs()
-	gm.total = ParseTotalGPUs()
+	total_gpus := ParseTotalGPUs()
+	allocated_gpus := ParseAllocatedGPUs()
+	gm.alloc = allocated_gpus
+	gm.idle = total_gpus - allocated_gpus
+	gm.total = total_gpus
+	gm.utilization = allocated_gpus / total_gpus
 	return &gm
 }
 
@@ -106,29 +117,29 @@ func NewGPUsCollector() *GPUsCollector {
 	return &GPUsCollector{
 		alloc: prometheus.NewDesc("slurm_gpus_alloc", "Allocated GPUs", nil, nil),
 		idle:  prometheus.NewDesc("slurm_gpus_idle", "Idle GPUs", nil, nil),
-		other: prometheus.NewDesc("slurm_gpus_other", "Mix GPUs", nil, nil),
 		total: prometheus.NewDesc("slurm_gpus_total", "Total GPUs", nil, nil),
+		utilization: prometheus.NewDesc("slurm_gpus_utilization", "Total GPU utilization", nil, nil),
 	}
 }
 
 type GPUsCollector struct {
-	alloc *prometheus.Desc
-	idle  *prometheus.Desc
-	other *prometheus.Desc
-	total *prometheus.Desc
+	alloc       *prometheus.Desc
+	idle        *prometheus.Desc
+	total       *prometheus.Desc
+	utilization *prometheus.Desc
 }
 
 // Send all metric descriptions
 func (cc *GPUsCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- cc.alloc
 	ch <- cc.idle
-	ch <- cc.other
 	ch <- cc.total
+	ch <- cc.utilization
 }
 func (cc *GPUsCollector) Collect(ch chan<- prometheus.Metric) {
 	cm := GPUsGetMetrics()
 	ch <- prometheus.MustNewConstMetric(cc.alloc, prometheus.GaugeValue, cm.alloc)
 	ch <- prometheus.MustNewConstMetric(cc.idle, prometheus.GaugeValue, cm.idle)
-	ch <- prometheus.MustNewConstMetric(cc.other, prometheus.GaugeValue, cm.other)
 	ch <- prometheus.MustNewConstMetric(cc.total, prometheus.GaugeValue, cm.total)
+	ch <- prometheus.MustNewConstMetric(cc.utilization, prometheus.GaugeValue, cm.utilization)
 }
