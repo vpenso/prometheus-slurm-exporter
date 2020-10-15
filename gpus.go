@@ -32,24 +32,41 @@ type GPUsMetrics struct {
 }
 
 func GPUsGetMetrics() *GPUsMetrics {
-	return ParseGPUsMetrics(GPUsData())
+	return ParseGPUsMetrics()
 }
 
-func ParseGPUsMetrics(input []byte) *GPUsMetrics {
+func ParseAllocatedGPUs() float64 {
+	return 0.0 // TODO Implement
+}
+
+func ParseIdleGPUs() float64 {
+	return 0.0 // TOOD Implement
+}
+
+func ParseOtherGPUs() float64 {
+	return 0.0 // TODO Implement
+}
+
+func ParseTotalGPUs() float64 {
+	args := []string{"sinfo", "-h", "-o \"%n %G\""}
+	output := Execute(args)
+	log.Info(output)
+
+	return 10.0 // TODO Implement
+}
+
+func ParseGPUsMetrics() *GPUsMetrics {
 	var gm GPUsMetrics
-	if strings.Contains(string(input), "/") {
-		splitted := strings.Split(strings.TrimSpace(string(input)), "/")
-		gm.alloc, _ = strconv.ParseFloat(splitted[0], 64)
-		gm.idle, _ = strconv.ParseFloat(splitted[1], 64)
-		gm.other, _ = strconv.ParseFloat(splitted[2], 64)
-		gm.total, _ = strconv.ParseFloat(splitted[3], 64)
-	}
+	gm.alloc, _ = ParseAllocatedGPUs()
+	gm.idle, _ = ParseIdleGPUs()
+	gm.other, _ = ParseOtherGPUs()
+	gm.total, _ = ParseTotalGPUs()
 	return &gm
 }
 
 // Execute the sinfo command and return its output
-func GPUsData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-o %C")
+func Execute(arguments []string) []byte {
+	cmd := exec.Command(arguments...)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
