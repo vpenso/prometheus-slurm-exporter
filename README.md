@@ -17,9 +17,9 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 ### State of the GPUs
 
 * **Allocated**: GPUs which have been allocated to a job.
-* **Idle**: GPUs not allocated to a job and thus available for use.
 * **Other**: GPUs which are unavailable for use at the moment.
 * **Total**: total number of GPUs.
+* **Utilization**: total GPU utiliazation on the cluster.
 
 - Information extracted from the SLURM [**sinfo**](https://slurm.schedmd.com/sinfo.html) and [**sacct**](https://slurm.schedmd.com/sacct.html) command.
 - [Slurm GRES scheduling](https://slurm.schedmd.com/gres.html)
