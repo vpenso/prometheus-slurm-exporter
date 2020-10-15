@@ -20,6 +20,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os/exec"
+	"strings"
 )
 
 type GPUsMetrics struct {
@@ -48,8 +49,14 @@ func ParseOtherGPUs() float64 {
 func ParseTotalGPUs() float64 {
 	args := []string{"-h", "-o \"%n %G\""}
 	output := string(Execute("sinfo", args))
+	if len(output) > 0 {
+		for _, line := range strings.Split(output, "\n") {
+			descriptor := strings.Split(line, " ")[0]
+			log.Fatal(descriptor)
+		}
+	}
 
-	return 10.0 // TODO Implement
+	return 0.0
 }
 
 func ParseGPUsMetrics() *GPUsMetrics {
