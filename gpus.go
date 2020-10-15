@@ -21,6 +21,7 @@ import (
 	"io/ioutil"
 	"os/exec"
 	"strings"
+	"strconv"
 )
 
 type GPUsMetrics struct {
@@ -47,19 +48,26 @@ func ParseOtherGPUs() float64 {
 }
 
 func ParseTotalGPUs() float64 {
+	var num_gpus = 0.0
+
 	args := []string{"-h", "-o \"%n %G\""}
 	output := string(Execute("sinfo", args))
 	if len(output) > 0 {
 		for _, line := range strings.Split(output, "\n") {
 			if len(line) > 0 {
-				log.Infof("Line %s: ", line)
-				descriptor := strings.Split(line, " ")[0]
-				log.Infof("Descriptor %s: ", descriptor)
+				line = strings.Trim(line, "\"")
+				descriptor := strings.Fields(line)[1]
+				descriptor = strings.TrimPrefix(descriptor, "gpu:")
+				descriptor = strings.Split(descriptor, "(")[0]
+				node_gpus, err :=  strconv.ParseFloat(descriptor, 64)
+				if err != nil {
+					num_gpus += node_gpus
+				}
 			}
 		}
 	}
 
-	return 0.0
+	return num_gpus
 }
 
 func ParseGPUsMetrics() *GPUsMetrics {
