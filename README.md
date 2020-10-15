@@ -39,7 +39,7 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 * **Mixed**: nodes which have some of their CPUs ALLOCATED while others are IDLE.
 * **Resv**: these nodes are in an advanced reservation and not generally available.
 
-[Information extracted from the SLURM **sinfo** command](https://slurm.schedmd.com/sinfo.html)
+- Information extracted from the SLURM [**sinfo**](https://slurm.schedmd.com/sinfo.html) command.
 
 ### Status of the Jobs
 
@@ -56,7 +56,7 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 * **PREEMPTED**: Jobs terminated due to preemption.
 * **NODE_FAIL**: Jobs terminated due to failure of one or more allocated nodes.
 
-[Information extracted from the SLURM **squeue** command](https://slurm.schedmd.com/squeue.html)
+- Information extracted from the SLURM [**squeue**](https://slurm.schedmd.com/squeue.html) command.
 
 ### Jobs information per Account and UserID
 
@@ -80,7 +80,7 @@ The following information about jobs are also extracted via [squeue](https://slu
 * **(Backfill) Total Backfilled Jobs** (since last stats cycle start): number of jobs started thanks to backfilling since last time stats where reset.
 * **(Backfill) Total backfilled heterogeneous Job components**: number of heterogeneous job components started thanks to backfilling since last Slurm start.
 
-[Information extracted from the SLURM **sdiag** command](https://slurm.schedmd.com/sdiag.html)
+- Information extracted from the SLURM [**sdiag**](https://slurm.schedmd.com/sdiag.html) command.
 
 *DBD Agent queue size*: it is particularly important to keep track of it, since an increasing number of messages
 counted with this parameter almost always indicates three issues:
