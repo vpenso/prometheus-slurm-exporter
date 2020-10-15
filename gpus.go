@@ -47,8 +47,7 @@ func ParseOtherGPUs() float64 {
 
 func ParseTotalGPUs() float64 {
 	args := []string{"-h", "-o \"%n %G\""}
-	output := Execute("sinfo", args)
-	log.Fatal(output)
+	output := string(Execute("sinfo", args))
 
 	return 10.0 // TODO Implement
 }
