@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Victor Penso, Matteo Dessalvi
+/* Copyright 2017-2020 Victor Penso, Matteo Dessalvi, Joeri Hermans
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
