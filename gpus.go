@@ -20,8 +20,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os/exec"
-	"strconv"
-	"strings"
 )
 
 type GPUsMetrics struct {
@@ -48,25 +46,25 @@ func ParseOtherGPUs() float64 {
 }
 
 func ParseTotalGPUs() float64 {
-	args := []string{"sinfo", "-h", "-o \"%n %G\""}
-	output := Execute(args)
-	log.Info(output)
+	args := []string{"-h", "-o \"%n %G\""}
+	output := Execute("sinfo", args)
+	log.Fatal(output)
 
 	return 10.0 // TODO Implement
 }
 
 func ParseGPUsMetrics() *GPUsMetrics {
 	var gm GPUsMetrics
-	gm.alloc, _ = ParseAllocatedGPUs()
-	gm.idle, _ = ParseIdleGPUs()
-	gm.other, _ = ParseOtherGPUs()
-	gm.total, _ = ParseTotalGPUs()
+	gm.alloc = ParseAllocatedGPUs()
+	gm.idle = ParseIdleGPUs()
+	gm.other = ParseOtherGPUs()
+	gm.total = ParseTotalGPUs()
 	return &gm
 }
 
 // Execute the sinfo command and return its output
-func Execute(arguments []string) []byte {
-	cmd := exec.Command(arguments...)
+func Execute(command string, arguments []string) []byte {
+	cmd := exec.Command(command, arguments...)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
