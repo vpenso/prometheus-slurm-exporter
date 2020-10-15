@@ -17,8 +17,8 @@ package main
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/log"
 	"io/ioutil"
-	"log"
 	"os/exec"
 	"strings"
 )
@@ -51,8 +51,9 @@ func ParseTotalGPUs() float64 {
 	output := string(Execute("sinfo", args))
 	if len(output) > 0 {
 		for _, line := range strings.Split(output, "\n") {
+			log.Infof("Line %s: ", line)
 			descriptor := strings.Split(line, " ")[0]
-			log.Fatal(descriptor)
+			log.Infof("Descriptor %s: ", descriptor)
 		}
 	}
 
