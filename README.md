@@ -48,7 +48,12 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 
 [Information extracted from the SLURM **squeue** command](https://slurm.schedmd.com/squeue.html)
 
-### Jobs information per Account and UserID
+### State of the Partitions
+
+* Running/suspended Jobs per partitions, divided between Slurm accounts and users.
+* CPUs total/allocated/idle per partition plus used CPU per user ID.
+
+### Jobs information per Account and User
 
 The following information about jobs are also extracted via [squeue](https://slurm.schedmd.com/squeue.html):
 
