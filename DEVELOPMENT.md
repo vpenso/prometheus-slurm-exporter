@@ -30,7 +30,7 @@ go mod download
 Build the exporter:
 
 ```bash
-go build -o bin/prometheus-slurm-exporter {main,accounts,cpus,nodes,queue,scheduler,users}.go
+go build -o bin/prometheus-slurm-exporter {main,accounts,cpus,nodes,partitions,queue,scheduler,users}.go
 ```
 
 Run all tests included in `_test.go` files:
