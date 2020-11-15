@@ -28,17 +28,17 @@ import (
 func UsersData() []byte {
         cmd := exec.Command("squeue","-a","-r","-h","-o %A|%u|%T|%C|%m")
         stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
-	}
-	out, _ := ioutil.ReadAll(stdout)
-	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
-	}
-	return out
+        if err != nil {
+                log.Fatal(err)
+        }
+        if err := cmd.Start(); err != nil {
+                log.Fatal(err)
+        }
+        out, _ := ioutil.ReadAll(stdout)
+        if err := cmd.Wait(); err != nil {
+                log.Fatal(err)
+        }
+        return out
 }
 
 type UserJobMetrics struct {
@@ -49,23 +49,25 @@ type UserJobMetrics struct {
         suspended float64
 }
 
-func prase_unit(input []byte) {
-	reg := `^(\d+)([KMGT])$`
-	r := regexp.MustCompile(reg)
-	matchs := r.FindStringSubmatch(input)
-	num,_ := strconv.Atoi( matchs[1] )
-	unit := matchs[2]
-	if ("K" == unit ) {
-		return(num * 1024)
-	} else if ("M" == unit ) {
-		return(num * 1024 * 1024)
-	} else if ("G" == unit ) {
-		return(num * 1024 * 1024 * 1024)
-	} else if ("T" == unit ) {
-		return(num * 1024 * 1024 * 1024 * 1024)
-	} else {
-		return(0)
-	}
+func prase_unit(input string) float64 {
+        reg := `^(\d+)([KMGT])$`
+        r := regexp.MustCompile(reg)
+        matchs := r.FindStringSubmatch(  string(input) )
+        num,_ := strconv.Atoi( matchs[1] )
+        unit := matchs[2]
+        ret := 0
+        if ("K" == unit ) {
+                ret = num * 1024
+        } else if ("M" == unit ) {
+                ret = num * 1024 * 1024
+        } else if ("G" == unit ) {
+                ret = num * 1024 * 1024 * 1024
+        } else if ("T" == unit ) {
+                ret = num * 1024 * 1024 * 1024 * 1024
+        } else {
+                ret = 0
+        }
+        return float64(ret)
 }
 
 func ParseUsersMetrics(input []byte) map[string]*UserJobMetrics {
@@ -76,12 +78,12 @@ func ParseUsersMetrics(input []byte) map[string]*UserJobMetrics {
                         user := strings.Split(line,"|")[1]
                         _,key := users[user]
                         if !key {
-                                users[user] = &UserJobMetrics{0,0,0,0}
+                                users[user] = &UserJobMetrics{0,0,0,0,0}
                         }
                         state := strings.Split(line,"|")[2]
                         state = strings.ToLower(state)
                         cpus,_ := strconv.ParseFloat(strings.Split(line,"|")[3],64)
-			mems := prase_unit(strings.Split(line,"|")[4])
+                        mems := prase_unit(strings.Split(line,"|")[4])
                         pending := regexp.MustCompile(`^pending`)
                         running := regexp.MustCompile(`^running`)
                         suspended := regexp.MustCompile(`^suspended`)
@@ -139,7 +141,7 @@ func (uc *UsersCollector) Collect(ch chan<- prometheus.Metric) {
                 if um[u].running_cpus > 0 {
                         ch <- prometheus.MustNewConstMetric(uc.running_cpus, prometheus.GaugeValue, um[u].running_cpus, u)
                 }
-		if um[u].running_mems > 0 {
+                if um[u].running_mems > 0 {
                         ch <- prometheus.MustNewConstMetric(uc.running_mems, prometheus.GaugeValue, um[u].running_mems, u)
                 }
                 if um[u].suspended > 0 {
