@@ -65,7 +65,7 @@ func prase_unit(input string) float64 {
         } else if ("T" == unit ) {
                 ret = num * 1024 * 1024 * 1024 * 1024
         } else {
-                ret = 0
+                ret = num
         }
         return float64(ret)
 }
