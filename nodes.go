@@ -58,6 +58,38 @@ func RemoveDuplicates(s []string) []string {
 	return t
 }
 
+func GetPartitionNames() []string {
+	return ParsePartitionNames(GetSinfo())
+}
+
+// Execute the sinfo command and return its output.
+func GetSinfo() []byte {
+	cmd := exec.Command("sinfo", "-s")
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+	out, _ := ioutil.ReadAll(stdout)
+	if err := cmd.Wait(); err != nil {
+		log.Fatal(err)
+	}
+	return out
+}
+
+func ParsePartitionNames(input []byte) []string {
+	partitions := make([]string, 0)
+	lines := strings.Split(string(input), "\n")
+	for _, line := range lines[1:] {
+		if len(line) > 2 {
+			partitions = append(partitions, strings.Trim(strings.Fields(line)[0], "*"))
+		}
+	}
+	return partitions
+}
+
 func ParseNodesMetrics(input []byte) *NodesMetrics {
 	var nm NodesMetrics
 	lines := strings.Split(string(input), "\n")
