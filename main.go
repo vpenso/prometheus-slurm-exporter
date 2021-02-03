@@ -1,4 +1,4 @@
-/* Copyright 2017-2020 Victor Penso, Matteo Dessalvi
+/* Copyright 2017-2020 Victor Penso, Matteo Dessalvi, Joeri Hermans
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,13 +25,14 @@ import (
 
 func init() {
 	// Metrics have to be registered to be exposed
-	prometheus.MustRegister(NewSchedulerCollector())      // from scheduler.go
-	prometheus.MustRegister(NewQueueCollector())          // from queue.go
-	prometheus.MustRegister(NewNodesCollector())          // from nodes.go
-	prometheus.MustRegister(NewCPUsCollector())           // from cpus.go
 	prometheus.MustRegister(NewAccountsCollector())       // from accounts.go
-	prometheus.MustRegister(NewUsersCollector())          // from users.go
+	prometheus.MustRegister(NewCPUsCollector())           // from cpus.go
+	prometheus.MustRegister(NewGPUsCollector())           // from gpus.go
+	prometheus.MustRegister(NewNodesCollector())          // from nodes.go
 	prometheus.MustRegister(NewPartitionsCollector())     // from partitions.go
+	prometheus.MustRegister(NewQueueCollector())          // from queue.go
+	prometheus.MustRegister(NewSchedulerCollector())      // from scheduler.go
+	prometheus.MustRegister(NewUsersCollector())          // from users.go
 }
 
 var listenAddress = flag.String(

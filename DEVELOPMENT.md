@@ -30,7 +30,7 @@ go mod download
 Build the exporter:
 
 ```bash
-go build -o bin/prometheus-slurm-exporter {main,accounts,cpus,nodes,partitions,queue,scheduler,users}.go
+go build -o bin/prometheus-slurm-exporter {main,accounts,cpus,gpus,partitions,nodes,queue,scheduler,users}.go
 ```
 
 Run all tests included in `_test.go` files:
@@ -44,6 +44,13 @@ Start the exporter (foreground), and query all metrics:
 ```bash
 bin/prometheus-slurm-exporter
 ...
+
+If you wish to run the exporter on a different port, or the default port (8080) is already in use, run with the following argument:
+
+```bash
+bin/prometheus-slurm-exporter --listen-address="0.0.0.0:<port>"
+...
+
 # query all metrics (default port)
 curl http://localhost:8080/metrics
 ```
@@ -56,4 +63,3 @@ References:
 * [Metric Types](https://prometheus.io/docs/concepts/metric_types/)
 * [Writing Exporters](https://prometheus.io/docs/instrumenting/writing_exporters/)
 * [Available Exporters](https://prometheus.io/docs/instrumenting/exporters/)
-

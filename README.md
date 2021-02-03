@@ -11,8 +11,18 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 * **Other**: CPUs which are unavailable for use at the moment.
 * **Total**: total number of CPUs.
 
-- [Information extracted from the SLURM **sinfo** command](https://slurm.schedmd.com/sinfo.html)
+- Information extracted from the SLURM [**sinfo**](https://slurm.schedmd.com/sinfo.html) command.
 - [Slurm CPU Management User and Administrator Guide](https://slurm.schedmd.com/cpu_management.html)
+
+### State of the GPUs
+
+* **Allocated**: GPUs which have been allocated to a job.
+* **Other**: GPUs which are unavailable for use at the moment.
+* **Total**: total number of GPUs.
+* **Utilization**: total GPU utiliazation on the cluster.
+
+- Information extracted from the SLURM [**sinfo**](https://slurm.schedmd.com/sinfo.html) and [**sacct**](https://slurm.schedmd.com/sacct.html) command.
+- [Slurm GRES scheduling](https://slurm.schedmd.com/gres.html)
 
 ### State of the Nodes
 
@@ -29,7 +39,7 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 * **Mixed**: nodes which have some of their CPUs ALLOCATED while others are IDLE.
 * **Resv**: these nodes are in an advanced reservation and not generally available.
 
-[Information extracted from the SLURM **sinfo** command](https://slurm.schedmd.com/sinfo.html)
+- Information extracted from the SLURM [**sinfo**](https://slurm.schedmd.com/sinfo.html) command.
 
 ### Status of the Jobs
 
@@ -46,7 +56,7 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 * **PREEMPTED**: Jobs terminated due to preemption.
 * **NODE_FAIL**: Jobs terminated due to failure of one or more allocated nodes.
 
-[Information extracted from the SLURM **squeue** command](https://slurm.schedmd.com/squeue.html)
+- Information extracted from the SLURM [**squeue**](https://slurm.schedmd.com/squeue.html) command.
 
 ### State of the Partitions
 
@@ -62,7 +72,7 @@ The following information about jobs are also extracted via [squeue](https://slu
 
 ### Scheduler Information
 
-* **Server Thread count**: The number of current active ``slurmctld`` threads. 
+* **Server Thread count**: The number of current active ``slurmctld`` threads.
 * **Queue size**: The length of the scheduler queue.
 * **DBD Agent queue size**: The length of the message queue for _SlurmDBD_.
 * **Last cycle**: Time in microseconds for last scheduling cycle.
@@ -75,11 +85,11 @@ The following information about jobs are also extracted via [squeue](https://slu
 * **(Backfill) Total Backfilled Jobs** (since last stats cycle start): number of jobs started thanks to backfilling since last time stats where reset.
 * **(Backfill) Total backfilled heterogeneous Job components**: number of heterogeneous job components started thanks to backfilling since last Slurm start.
 
-[Information extracted from the SLURM **sdiag** command](https://slurm.schedmd.com/sdiag.html)
+- Information extracted from the SLURM [**sdiag**](https://slurm.schedmd.com/sdiag.html) command.
 
 *DBD Agent queue size*: it is particularly important to keep track of it, since an increasing number of messages
 counted with this parameter almost always indicates three issues:
-* the _SlurmDBD_ daemon is down; 
+* the _SlurmDBD_ daemon is down;
 * the database is either down or unreachable;
 * the status of the Slurm accounting DB may be inconsistent (e.g. ``sreport`` missing data, weird utilization of the cluster, etc.).
 
@@ -87,7 +97,7 @@ counted with this parameter almost always indicates three issues:
 ## Installation
 
 * Read [DEVELOPMENT.md](DEVELOPMENT.md) in order to build the Prometheus Slurm Exporter. After a successful build copy the executable
-`bin/prometheus-slurm-exporter` to a node with access to the Slurm command-line interface. 
+`bin/prometheus-slurm-exporter` to a node with access to the Slurm command-line interface.
 
 * A [Systemd Unit][sdu] file to run the executable as service is available in [lib/systemd/prometheus-slurm-exporter.service](lib/systemd/prometheus-slurm-exporter.service).
 
@@ -104,7 +114,7 @@ scrape_configs:
 
 #
 # SLURM resource manager:
-# 
+#
   - job_name: 'my_slurm_exporter'
 
     scrape_interval:  30s
@@ -151,5 +161,3 @@ This is free software: you can redistribute it and/or modify it under the terms 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/.
-
-
