@@ -22,11 +22,10 @@ import (
         "strings"
         "strconv"
         "github.com/prometheus/client_golang/prometheus"
-        "fmt"
 )
 
 func FairShareData() []byte {
-        cmd := exec.Command( "sshare", "-n", "-P", "-o", "account,fairshare", "|", "grep '^ [a-z]'" )
+        cmd := exec.Command( "sshare", "-n", "-P", "-o", "account,fairshare" )
         stdout, err := cmd.StdoutPipe()
         if err != nil {
                 log.Fatal(err)
@@ -49,15 +48,16 @@ func ParseFairShareMetrics() map[string]*FairShareMetrics {
         accounts := make(map[string]*FairShareMetrics)
         lines := strings.Split(string(FairShareData()), "\n")
         for _, line := range lines {
-                fmt.Printf(line)
-                if strings.Contains(line,"|") {
-                        account := strings.Split(line,"|")[0]
-                        _,key := accounts[account]
-                        if !key {
-                                accounts[account] = &FairShareMetrics{0}
+                if ! strings.HasPrefix(line,"  ") {
+                        if strings.Contains(line,"|") {
+                                account := strings.Split(line,"|")[0]
+                                _,key := accounts[account]
+                                if !key {
+                                        accounts[account] = &FairShareMetrics{0}
+                                }
+                                fairshare,_ := strconv.ParseFloat(strings.Split(line,"|")[1],64)
+                                accounts[account].fairshare = fairshare
                         }
-                        fairshare,_ := strconv.ParseFloat(strings.Split(line,"|")[1],64)
-                        accounts[account].fairshare = fairshare
                 }
         }
         return accounts
