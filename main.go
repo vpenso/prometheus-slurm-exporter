@@ -32,6 +32,7 @@ func init() {
 	prometheus.MustRegister(NewPartitionsCollector())     // from partitions.go
 	prometheus.MustRegister(NewQueueCollector())          // from queue.go
 	prometheus.MustRegister(NewSchedulerCollector())      // from scheduler.go
+	prometheus.MustRegister(NewFairShareCollector())      // from sshare.go
 	prometheus.MustRegister(NewUsersCollector())          // from users.go
 }
 
