@@ -43,7 +43,7 @@ Start the exporter (foreground), and query all metrics:
 
 ```bash
 bin/prometheus-slurm-exporter
-...
+```
 
 If you wish to run the exporter on a different port, or the default port (8080) is already in use, run with the following argument:
 
