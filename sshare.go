@@ -50,7 +50,7 @@ func ParseFairShareMetrics() map[string]*FairShareMetrics {
         for _, line := range lines {
                 if ! strings.HasPrefix(line,"  ") {
                         if strings.Contains(line,"|") {
-                                account := strings.Split(line,"|")[0]
+                                account := strings.Trim(strings.Split(line,"|")[0]," ")
                                 _,key := accounts[account]
                                 if !key {
                                         accounts[account] = &FairShareMetrics{0}
