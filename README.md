@@ -93,6 +93,9 @@ counted with this parameter almost always indicates three issues:
 * the database is either down or unreachable;
 * the status of the Slurm accounting DB may be inconsistent (e.g. ``sreport`` missing data, weird utilization of the cluster, etc.).
 
+### Share Information
+
+Collect _share_ statistics for every Slurm account. Refer to the [manpage of the sshare command](https://slurm.schedmd.com/sshare.html) to get more information.
 
 ## Installation
 
