@@ -1,3 +1,5 @@
+// +build unit
+
 /* Copyright 2017 Victor Penso, Matteo Dessalvi, Rovanion Luckey
 
 This program is free software: you can redistribute it and/or modify
@@ -29,8 +31,4 @@ func TestCPUsMetrics(t *testing.T) {
 	}
 	data, err := ioutil.ReadAll(file)
 	t.Logf("%+v", ParseCPUsMetrics(data))
-}
-
-func TestCPUsGetMetrics(t *testing.T) {
-	t.Logf("%+v", CPUsGetMetrics())
 }

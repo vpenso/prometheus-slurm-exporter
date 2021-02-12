@@ -1,4 +1,6 @@
-/* Copyright 2017 Victor Penso, Matteo Dessalvi
+// +build unit
+
+/* Copyright 2017 Victor Penso, Matteo Dessalvi, Rovanion Luckey
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,8 +31,4 @@ func TestNodesMetrics(t *testing.T) {
 	}
 	data, err := ioutil.ReadAll(file)
 	t.Logf("%+v", ParseNodesMetrics(data))
-}
-
-func TestNodesGetMetrics(t *testing.T) {
-	t.Logf("%+v", NodesGetMetrics())
 }
