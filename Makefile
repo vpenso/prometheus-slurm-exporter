@@ -13,6 +13,12 @@ build:
 test:
 	@GOPATH=$(GOPATH) go test -v *.go
 
+unittest:
+	@GOPATH=$(GOPATH) go test -v --tags unit
+
+systemtest:
+	@GOPATH=$(GOPATH) go test -v --tags system
+
 run:
 	@GOPATH=$(GOPATH) go run $(GOFILES)
 
