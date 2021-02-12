@@ -1,4 +1,4 @@
-/* Copyright 2017 Victor Penso, Matteo Dessalvi
+/* Copyright 2017 Victor Penso, Matteo Dessalvi, Rovanion Luckey
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -31,6 +31,6 @@ func TestCPUsMetrics(t *testing.T) {
 	t.Logf("%+v", ParseCPUsMetrics(data))
 }
 
-func TestCPUssGetMetrics(t *testing.T) {
+func TestCPUsGetMetrics(t *testing.T) {
 	t.Logf("%+v", CPUsGetMetrics())
 }
