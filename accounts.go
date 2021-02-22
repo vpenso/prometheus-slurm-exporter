@@ -1,4 +1,5 @@
 /* Copyright 2020 Victor Penso
+Copyright 2021 Rovanion Luckey
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +19,6 @@ package main
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	"io/ioutil"
-	"log"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -26,17 +26,25 @@ import (
 )
 
 func AccountsData() []byte {
-	cmd := exec.Command("squeue", "-a", "-r", "-h", "-o %A|%a|%T|%C")
-	stdout, err := cmd.StdoutPipe()
+	command := [...]string{"squeue", "-a", "-r", "-h", "-o %A|%a|%T|%C"}
+	subprocess := exec.Command(command[0], command[1:]...)
+	stdout, err := subprocess.StdoutPipe()
 	if err != nil {
-		log.Fatal(err)
+		Fatal("Unable to open stdout: ", err)
 	}
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
+	stderr, err := subprocess.StderrPipe()
+	if err != nil {
+		Fatal("Unable to open stderr: ", err)
 	}
-	out, _ := ioutil.ReadAll(stdout)
-	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
+	if err := subprocess.Start(); err != nil {
+		Fatal("Failed to start ", command[0], ": ", err)
+	}
+	out, err := ioutil.ReadAll(stdout)
+	errOut, _ := ioutil.ReadAll(stderr)
+	if err := subprocess.Wait(); err != nil {
+		Log("The command ", command, " failed with the following error:")
+		Log(string(errOut))
+		Fatal("The subprocess ", command[0], " terminated with: ", err)
 	}
 	return out
 }
