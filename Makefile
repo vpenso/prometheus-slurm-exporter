@@ -2,7 +2,7 @@ PROJECT_NAME = prometheus-slurm-exporter
 ifndef GOPATH
 	GOPATH=$(shell pwd):/usr/share/gocode
 endif
-GOFILES=accounts.go cpus.go gpus.go main.go nodes.go partitions.go queue.go scheduler.go sshare.go users.go log.go
+GOFILES=accounts.go cpus.go gpus.go main.go nodes.go partitions.go queue.go scheduler.go sshare.go users.go log.go subprocess.go
 GOBIN=bin/$(PROJECT_NAME)
 
 build:

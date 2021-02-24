@@ -18,36 +18,10 @@ package main
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"io/ioutil"
-	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
 )
-
-func AccountsData() []byte {
-	command := [...]string{"squeue", "-a", "-r", "-h", "-o %A|%a|%T|%C"}
-	subprocess := exec.Command(command[0], command[1:]...)
-	stdout, err := subprocess.StdoutPipe()
-	if err != nil {
-		Fatal("Unable to open stdout: ", err)
-	}
-	stderr, err := subprocess.StderrPipe()
-	if err != nil {
-		Fatal("Unable to open stderr: ", err)
-	}
-	if err := subprocess.Start(); err != nil {
-		Fatal("Failed to start ", command[0], ": ", err)
-	}
-	out, err := ioutil.ReadAll(stdout)
-	errOut, _ := ioutil.ReadAll(stderr)
-	if err := subprocess.Wait(); err != nil {
-		Log("The command ", command, " failed with the following error:")
-		Log(string(errOut))
-		Fatal("The subprocess ", command[0], " terminated with: ", err)
-	}
-	return out
-}
 
 type JobMetrics struct {
 	pending      float64
@@ -86,6 +60,10 @@ func ParseAccountsMetrics(input []byte) map[string]*JobMetrics {
 	return accounts
 }
 
+func GetAccountsMetrics() map[string]*JobMetrics {
+	return ParseAccountsMetrics(Subprocess("squeue", "-a", "-r", "-h", "-o %A|%a|%T|%C"))
+}
+
 type AccountsCollector struct {
 	pending      *prometheus.Desc
 	running      *prometheus.Desc
@@ -111,7 +89,7 @@ func (ac *AccountsCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (ac *AccountsCollector) Collect(ch chan<- prometheus.Metric) {
-	am := ParseAccountsMetrics(AccountsData())
+	am := GetAccountsMetrics()
 	for a := range am {
 		if am[a].pending > 0 {
 			ch <- prometheus.MustNewConstMetric(ac.pending, prometheus.GaugeValue, am[a].pending, a)
