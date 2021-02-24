@@ -21,6 +21,8 @@ import (
 	"runtime"
 )
 
+// Log messages to stdout preceeded by the current timestamp and the
+// module.Function where Log was called from.
 func Log(messages ...interface{}) {
 	pc, _, _, ok := runtime.Caller(1)
 	details := runtime.FuncForPC(pc)
@@ -31,8 +33,39 @@ func Log(messages ...interface{}) {
 	}
 }
 
+// Log messages to stdout preceeded by the current timestamp and the
+// module.Function where Log was called from and then terminate the
+// program.
 func Fatal(messages ...interface{}) {
 	pc, _, _, ok := runtime.Caller(1)
+	details := runtime.FuncForPC(pc)
+	if ok && details != nil {
+		log.Fatal(details.Name(), ": ", fmt.Sprint(messages...))
+	} else {
+		log.Fatal(fmt.Sprint(messages...))
+	}
+}
+
+// Log messages to stdout preceeded by the current timestamp and the
+// module.Function of the parent function from where Log was called
+// from. This Log function is meant to be called from utility
+// functions.
+func Log2(messages ...interface{}) {
+	pc, _, _, ok := runtime.Caller(2)
+	details := runtime.FuncForPC(pc)
+	if ok && details != nil {
+		log.Print(details.Name(), ": ", fmt.Sprint(messages...))
+	} else {
+		log.Print(fmt.Sprint(messages...))
+	}
+}
+
+// Log messages to stdout preceeded by the current timestamp and the
+// module.function of the parent function from where Log was called
+// from and then terminate the program. This Log function is meant to
+// be called from utility functions.
+func Fatal2(messages ...interface{}) {
+	pc, _, _, ok := runtime.Caller(2)
 	details := runtime.FuncForPC(pc)
 	if ok && details != nil {
 		log.Fatal(details.Name(), ": ", fmt.Sprint(messages...))
