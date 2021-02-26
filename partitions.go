@@ -1,4 +1,5 @@
 /* Copyright 2020 Victor Penso
+   Copyright 2021 Rovanion Luckey
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,44 +18,9 @@ package main
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"io/ioutil"
-	"log"
-	"os/exec"
 	"strconv"
 	"strings"
 )
-
-func PartitionsData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-o%R,%C")
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
-	}
-	out, _ := ioutil.ReadAll(stdout)
-	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
-	}
-	return out
-}
-
-func PartitionsPendingJobsData() []byte {
-	cmd := exec.Command("squeue", "-a", "-r", "-h", "-o%P", "--states=PENDING")
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
-	}
-	out, _ := ioutil.ReadAll(stdout)
-	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
-	}
-	return out
-}
 
 type PartitionMetrics struct {
 	allocated float64
@@ -64,9 +30,9 @@ type PartitionMetrics struct {
 	total     float64
 }
 
-func ParsePartitionsMetrics() map[string]*PartitionMetrics {
+func ParsePartitionsMetrics(sinfoOutput []byte, squeueOutput []byte) map[string]*PartitionMetrics {
 	partitions := make(map[string]*PartitionMetrics)
-	lines := strings.Split(string(PartitionsData()), "\n")
+	lines := strings.Split(string(sinfoOutput), "\n")
 	for _, line := range lines {
 		if strings.Contains(line, ",") {
 			// name of a partition
@@ -87,7 +53,7 @@ func ParsePartitionsMetrics() map[string]*PartitionMetrics {
 		}
 	}
 	// get list of pending jobs by partition name
-	list := strings.Split(string(PartitionsPendingJobsData()), "\n")
+	list := strings.Split(string(squeueOutput), "\n")
 	for _, partition := range list {
 		// accumulate the number of pending jobs
 		_, key := partitions[partition]
@@ -97,6 +63,13 @@ func ParsePartitionsMetrics() map[string]*PartitionMetrics {
 	}
 
 	return partitions
+}
+
+func GetPartitionsMetrics() map[string]*PartitionMetrics {
+	return ParsePartitionsMetrics(
+		Subprocess("sinfo", "-h", "-o%R,%C"),
+		Subprocess("squeue", "-a", "-r", "-h", "-o%P", "--states=PENDING"),
+	)
 }
 
 type PartitionsCollector struct {
@@ -127,7 +100,7 @@ func (pc *PartitionsCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (pc *PartitionsCollector) Collect(ch chan<- prometheus.Metric) {
-	pm := ParsePartitionsMetrics()
+	pm := GetPartitionsMetrics()
 	for p := range pm {
 		if pm[p].allocated > 0 {
 			ch <- prometheus.MustNewConstMetric(pc.allocated, prometheus.GaugeValue, pm[p].allocated, p)
