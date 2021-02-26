@@ -21,6 +21,6 @@ import (
 	"testing"
 )
 
-func TestQueueGetMetrics(t *testing.T) {
-	t.Logf("%+v", QueueGetMetrics())
+func TestGetQueueMetrics(t *testing.T) {
+	t.Logf("%+v", GetQueueMetrics())
 }
