@@ -21,6 +21,6 @@ import (
 	"testing"
 )
 
-func TestSchedulerGetMetrics(t *testing.T) {
-	t.Logf("%+v", SchedulerGetMetrics())
+func TestGetSchedulerMetrics(t *testing.T) {
+	t.Logf("%+v", GetSchedulerMetrics())
 }
