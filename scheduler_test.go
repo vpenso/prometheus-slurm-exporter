@@ -25,10 +25,44 @@ import (
 
 func TestSchedulerMetrics(t *testing.T) {
 	// Read the input data from a file
-	file, err := os.Open("test_data/sdiag.txt")
-	if err != nil {
-		t.Fatalf("Can not open test data: %v", err)
+	file, _ := os.Open("test_data/sdiag.txt")
+	data, _ := ioutil.ReadAll(file)
+	schedulerMetrics := ParseSchedulerMetrics(data)
+
+	if schedulerMetrics.threads != 3.0 {
+		t.Errorf("Miscount of threads, got %v, wanted: %f", schedulerMetrics.threads, 3.0)
 	}
-	data, err := ioutil.ReadAll(file)
-	t.Logf("%+v", ParseSchedulerMetrics(data))
+	if schedulerMetrics.queue_size != 0.0 {
+		t.Errorf("Miscount of queue_size, got %v, wanted: %f", schedulerMetrics.queue_size, 0.0)
+	}
+	if schedulerMetrics.dbd_queue_size != 0.0 {
+		t.Errorf("Miscount of dbd_queue_size, got %v, wanted: %f", schedulerMetrics.dbd_queue_size, 0.0)
+	}
+	if schedulerMetrics.last_cycle != 97209.0 {
+		t.Errorf("Miscount of last_cycle, got %v, wanted: %f", schedulerMetrics.last_cycle, 97209.0)
+	}
+	if schedulerMetrics.mean_cycle != 74593.0 {
+		t.Errorf("Miscount of mean_cycle, got %v, wanted: %f", schedulerMetrics.mean_cycle, 74593.0)
+	}
+	if schedulerMetrics.cycle_per_minute != 63.0 {
+		t.Errorf("Miscount of cycle_per_minute, got %v, wanted: %f", schedulerMetrics.cycle_per_minute, 63.0)
+	}
+	if schedulerMetrics.backfill_last_cycle != 1.94289e+06 {
+		t.Errorf("Miscount of backfill_last_cycle, got %v, wanted: %f", schedulerMetrics.backfill_last_cycle, 1.94289e+06)
+	}
+	if schedulerMetrics.backfill_mean_cycle != 1.96082e+06 {
+		t.Errorf("Miscount of backfill_mean_cycle, got %v, wanted: %f", schedulerMetrics.backfill_mean_cycle, 1.96082e+06)
+	}
+	if schedulerMetrics.backfill_depth_mean != 29324.0 {
+		t.Errorf("Miscount of backfill_depth_mean, got %v, wanted: %f", schedulerMetrics.backfill_depth_mean, 29324.0)
+	}
+	if schedulerMetrics.total_backfilled_jobs_since_start != 111544.0 {
+		t.Errorf("Miscount of total_backfilled_jobs_since_start, got %v, wanted: %f", schedulerMetrics.total_backfilled_jobs_since_start, 111544.0)
+	}
+	if schedulerMetrics.total_backfilled_jobs_since_cycle != 793.0 {
+		t.Errorf("Miscount of total_backfilled_jobs_since_cycle, got %v, wanted: %f", schedulerMetrics.total_backfilled_jobs_since_cycle, 793.0)
+	}
+	if schedulerMetrics.total_backfilled_heterogeneous != 10.0 {
+		t.Errorf("Miscount of total_backfilled_heterogeneous, got %v, wanted: %f", schedulerMetrics.total_backfilled_heterogeneous, 10.0)
+	}
 }
