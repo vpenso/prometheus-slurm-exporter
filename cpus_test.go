@@ -24,11 +24,19 @@ import (
 )
 
 func TestCPUsMetrics(t *testing.T) {
-	// Read the input data from a file
-	file, err := os.Open("test_data/sinfo_cpus.txt")
-	if err != nil {
-		t.Fatalf("Can not open test data: %v", err)
+	file, _ := os.Open("test_data/sinfo_cpus.txt")
+	data, _ := ioutil.ReadAll(file)
+	cpus := ParseCPUsMetrics(data)
+	if cpus.alloc != 5725.0 {
+		t.Errorf("Miscount of alloc CPUs, got: %v, expected: %f", cpus.alloc, 5725.0)
 	}
-	data, err := ioutil.ReadAll(file)
-	t.Logf("%+v", ParseCPUsMetrics(data))
+	if cpus.idle != 877.0 {
+		t.Errorf("Miscount of idle CPUs, got: %v, expected: %f", cpus.idle, 877.0)
+	}
+	if cpus.other != 34.0 {
+		t.Errorf("Miscount of other CPUs, got: %v, expected: %f", cpus.other, 34.0)
+	}
+	if cpus.total != 6636.0 {
+		t.Errorf("Miscount of total CPUs, got: %v, expected: %f", cpus.total, 6636.0)
+	}
 }
