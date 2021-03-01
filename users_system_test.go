@@ -20,6 +20,6 @@ import (
 	"testing"
 )
 
-func TestUsersMetrics(t *testing.T) {
+func TestGetUsersMetrics(t *testing.T) {
 	t.Logf("%+v", GetUsersMetrics())
 }
