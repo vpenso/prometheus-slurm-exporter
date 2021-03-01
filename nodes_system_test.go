@@ -21,6 +21,6 @@ import (
 	"testing"
 )
 
-func TestNodesGetMetrics(t *testing.T) {
-	t.Logf("%+v", NodesGetMetrics())
+func TestGetNodesMetrics(t *testing.T) {
+	t.Logf("%+v", GetNodesMetrics())
 }
