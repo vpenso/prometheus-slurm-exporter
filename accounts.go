@@ -30,9 +30,9 @@ type JobMetrics struct {
 	suspended    float64
 }
 
-func ParseAccountsMetrics(input []byte) map[string]*JobMetrics {
+func ParseAccountsMetrics(squeueOutput []byte) map[string]*JobMetrics {
 	accounts := make(map[string]*JobMetrics)
-	lines := strings.Split(string(input), "\n")
+	lines := strings.Split(string(squeueOutput), "\n")
 	for _, line := range lines {
 		if strings.Contains(line, "|") {
 			account := strings.Split(line, "|")[1]
