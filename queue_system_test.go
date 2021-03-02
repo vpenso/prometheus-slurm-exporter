@@ -1,4 +1,4 @@
-// +build unit
+// +build system
 
 /* Copyright 2017 Victor Penso, Matteo Dessalvi, Rovanion Luckey
 
@@ -18,25 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
 )
 
-func TestCPUsMetrics(t *testing.T) {
-	file, _ := os.Open("test_data/sinfo_cpus.txt")
-	data, _ := ioutil.ReadAll(file)
-	cpus := ParseCPUsMetrics(data)
-	if cpus.alloc != 5725.0 {
-		t.Errorf("Miscount of alloc CPUs, got: %v, expected: %f", cpus.alloc, 5725.0)
-	}
-	if cpus.idle != 877.0 {
-		t.Errorf("Miscount of idle CPUs, got: %v, expected: %f", cpus.idle, 877.0)
-	}
-	if cpus.other != 34.0 {
-		t.Errorf("Miscount of other CPUs, got: %v, expected: %f", cpus.other, 34.0)
-	}
-	if cpus.total != 6636.0 {
-		t.Errorf("Miscount of total CPUs, got: %v, expected: %f", cpus.total, 6636.0)
-	}
+func TestGetQueueMetrics(t *testing.T) {
+	t.Logf("%+v", GetQueueMetrics())
 }

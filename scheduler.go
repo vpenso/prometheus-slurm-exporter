@@ -17,9 +17,6 @@ package main
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"io/ioutil"
-	"log"
-	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
@@ -45,23 +42,6 @@ type SchedulerMetrics struct {
 	total_backfilled_jobs_since_start float64
 	total_backfilled_jobs_since_cycle float64
 	total_backfilled_heterogeneous    float64
-}
-
-// Execute the sdiag command and return its output
-func SchedulerData() []byte {
-	cmd := exec.Command("sdiag")
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
-	}
-	out, _ := ioutil.ReadAll(stdout)
-	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
-	}
-	return out
 }
 
 // Extract the relevant metrics from the sdiag output
@@ -125,8 +105,8 @@ func ParseSchedulerMetrics(input []byte) *SchedulerMetrics {
 }
 
 // Returns the scheduler metrics
-func SchedulerGetMetrics() *SchedulerMetrics {
-	return ParseSchedulerMetrics(SchedulerData())
+func GetSchedulerMetrics() *SchedulerMetrics {
+	return ParseSchedulerMetrics(Subprocess("sdiag"))
 }
 
 /*
@@ -169,7 +149,7 @@ func (c *SchedulerCollector) Describe(ch chan<- *prometheus.Desc) {
 
 // Send the values of all metrics
 func (sc *SchedulerCollector) Collect(ch chan<- prometheus.Metric) {
-	sm := SchedulerGetMetrics()
+	sm := GetSchedulerMetrics()
 	ch <- prometheus.MustNewConstMetric(sc.threads, prometheus.GaugeValue, sm.threads)
 	ch <- prometheus.MustNewConstMetric(sc.queue_size, prometheus.GaugeValue, sm.queue_size)
 	ch <- prometheus.MustNewConstMetric(sc.dbd_queue_size, prometheus.GaugeValue, sm.dbd_queue_size)
