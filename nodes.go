@@ -16,7 +16,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
 	"io/ioutil"
 	"log"
 	"os/exec"
@@ -24,6 +23,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type NodesMetrics struct {
@@ -50,8 +51,10 @@ func RemoveDuplicates(s []string) []string {
 	// Walk through the slice 's' and for each value we haven't seen so far, append it to 't'.
 	for _, v := range s {
 		if _, seen := m[v]; !seen {
-			t = append(t, v)
-			m[v] = true
+			if len(v) > 0 {
+				t = append(t, v)
+				m[v] = true
+			}
 		}
 	}
 
