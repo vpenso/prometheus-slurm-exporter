@@ -707,3 +707,4 @@ lxbar0154,allocated
 lxbar0155,down*
 lxbar0156,idle
 lxbar0157,allocated
+lxbar0158,idle~

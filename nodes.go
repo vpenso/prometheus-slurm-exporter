@@ -34,6 +34,7 @@ type NodesMetrics struct {
 	err   float64
 	fail  float64
 	idle  float64
+	idle_power_save  float64
 	maint float64
 	mix   float64
 	resv  float64
@@ -78,6 +79,7 @@ func ParseNodesMetrics(input []byte) *NodesMetrics {
 			fail := regexp.MustCompile(`^fail`)
 			err := regexp.MustCompile(`^err`)
 			idle := regexp.MustCompile(`^idle`)
+			idle_power_save := regexp.MustCompile(`^idle~`)
 			maint := regexp.MustCompile(`^maint`)
 			mix := regexp.MustCompile(`^mix`)
 			resv := regexp.MustCompile(`^res`)
@@ -94,6 +96,8 @@ func ParseNodesMetrics(input []byte) *NodesMetrics {
 				nm.fail += count
 			case err.MatchString(state) == true:
 				nm.err += count
+			case idle_power_save.MatchString(state) == true:
+				nm.idle += count
 			case idle.MatchString(state) == true:
 				nm.idle += count
 			case maint.MatchString(state) == true:
@@ -140,6 +144,7 @@ func NewNodesCollector() *NodesCollector {
 		err:   prometheus.NewDesc("slurm_nodes_err", "Error nodes", nil, nil),
 		fail:  prometheus.NewDesc("slurm_nodes_fail", "Fail nodes", nil, nil),
 		idle:  prometheus.NewDesc("slurm_nodes_idle", "Idle nodes", nil, nil),
+		idle_power_save:  prometheus.NewDesc("slurm_nodes_idle_power_save", "Idle nodes", nil, nil),
 		maint: prometheus.NewDesc("slurm_nodes_maint", "Maint nodes", nil, nil),
 		mix:   prometheus.NewDesc("slurm_nodes_mix", "Mix nodes", nil, nil),
 		resv:  prometheus.NewDesc("slurm_nodes_resv", "Reserved nodes", nil, nil),
@@ -154,6 +159,7 @@ type NodesCollector struct {
 	err   *prometheus.Desc
 	fail  *prometheus.Desc
 	idle  *prometheus.Desc
+	idle_power_save  *prometheus.Desc
 	maint *prometheus.Desc
 	mix   *prometheus.Desc
 	resv  *prometheus.Desc
@@ -167,6 +173,7 @@ func (nc *NodesCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- nc.drain
 	ch <- nc.err
 	ch <- nc.fail
+	ch <- nc.idle_power_save
 	ch <- nc.idle
 	ch <- nc.maint
 	ch <- nc.mix
@@ -180,6 +187,7 @@ func (nc *NodesCollector) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(nc.drain, prometheus.GaugeValue, nm.drain)
 	ch <- prometheus.MustNewConstMetric(nc.err, prometheus.GaugeValue, nm.err)
 	ch <- prometheus.MustNewConstMetric(nc.fail, prometheus.GaugeValue, nm.fail)
+	ch <- prometheus.MustNewConstMetric(nc.idle_power_save, prometheus.GaugeValue, nm.idle_power_save)
 	ch <- prometheus.MustNewConstMetric(nc.idle, prometheus.GaugeValue, nm.idle)
 	ch <- prometheus.MustNewConstMetric(nc.maint, prometheus.GaugeValue, nm.maint)
 	ch <- prometheus.MustNewConstMetric(nc.mix, prometheus.GaugeValue, nm.mix)
