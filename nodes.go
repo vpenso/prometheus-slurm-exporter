@@ -96,9 +96,10 @@ func ParseNodesMetrics(input []byte) *NodesMetrics {
 				nm.fail += count
 			case err.MatchString(state) == true:
 				nm.err += count
-			case idle_power_save.MatchString(state) == true:
-				nm.idle += count
 			case idle.MatchString(state) == true:
+        if idle_power_save.MatchString(state) == true {
+          nm.idle_power_save += count
+        }
 				nm.idle += count
 			case maint.MatchString(state) == true:
 				nm.maint += count
