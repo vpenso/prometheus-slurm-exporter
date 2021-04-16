@@ -41,6 +41,16 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 
 - Information extracted from the SLURM [**sinfo**](https://slurm.schedmd.com/sinfo.html) command.
 
+#### Additional info about node usage
+
+Since version **0.18**, the following information are also extracted and exported for **every** node known by Slurm:
+
+* CPUs: how many are _allocated_, _idle_, _other_ and in _total_.
+* Memory: _allocated_ and in _total_.
+* Labels: hostname and its Slurm status (e.g. _idle_, _mix_, _allocated_, _draining_, etc.).
+
+See the related [test data](https://github.com/vpenso/prometheus-slurm-exporter/blob/master/test_data/sinfo_mem.txt) to check the format of the information extracted from Slurm.
+
 ### Status of the Jobs
 
 * **PENDING**: Jobs awaiting for resource allocation.
