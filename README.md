@@ -24,6 +24,13 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 - Information extracted from the SLURM [**sinfo**](https://slurm.schedmd.com/sinfo.html) and [**sacct**](https://slurm.schedmd.com/sacct.html) command.
 - [Slurm GRES scheduling](https://slurm.schedmd.com/gres.html)
 
+**NOTE**: since version **0.19**, GPU accounting has to be **explicitly** enabled adding the _-gpu-acct_ option to the command line otherwise it will not be activated.
+
+Be aware that:
+
+* According to issue #38, users reported that newer version of Slurm provides slightly different output and thus GPUs accounting may not work properly.
+* Users who do not have GPUs and/or do not have accounting activated may want to keep GPUs accounting **off** (see issue #45).
+
 ### State of the Nodes
 
 * **Allocated**: nodes which has been allocated to one or more jobs.
