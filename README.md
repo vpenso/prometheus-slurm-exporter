@@ -24,6 +24,13 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 - Information extracted from the SLURM [**sinfo**](https://slurm.schedmd.com/sinfo.html) and [**sacct**](https://slurm.schedmd.com/sacct.html) command.
 - [Slurm GRES scheduling](https://slurm.schedmd.com/gres.html)
 
+**NOTE**: since version **0.19**, GPU accounting has to be **explicitly** enabled adding the _-gpu-acct_ option to the command line otherwise it will not be activated.
+
+Be aware that:
+
+* According to issue #38, users reported that newer version of Slurm provides slightly different output and thus GPUs accounting may not work properly.
+* Users who do not have GPUs and/or do not have accounting activated may want to keep GPUs accounting **off** (see issue #45).
+
 ### State of the Nodes
 
 * **Allocated**: nodes which has been allocated to one or more jobs.
@@ -40,6 +47,16 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 * **Resv**: these nodes are in an advanced reservation and not generally available.
 
 - Information extracted from the SLURM [**sinfo**](https://slurm.schedmd.com/sinfo.html) command.
+
+#### Additional info about node usage
+
+Since version **0.18**, the following information are also extracted and exported for **every** node known by Slurm:
+
+* CPUs: how many are _allocated_, _idle_, _other_ and in _total_.
+* Memory: _allocated_ and in _total_.
+* Labels: hostname and its Slurm status (e.g. _idle_, _mix_, _allocated_, _draining_, etc.).
+
+See the related [test data](https://github.com/vpenso/prometheus-slurm-exporter/blob/master/test_data/sinfo_mem.txt) to check the format of the information extracted from Slurm.
 
 ### Status of the Jobs
 
