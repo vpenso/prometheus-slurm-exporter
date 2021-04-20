@@ -85,7 +85,9 @@ See the related [test data](https://github.com/vpenso/prometheus-slurm-exporter/
 The following information about jobs are also extracted via [squeue](https://slurm.schedmd.com/squeue.html):
 
 * **Running/Pending/Suspended** jobs per SLURM Account.
+* **Running/Pending** CPUs per SLURM Account.
 * **Running/Pending/Suspended** jobs per SLURM User.
+* **Running/Pending** CPUs per SLURM User.
 
 ### Scheduler Information
 
