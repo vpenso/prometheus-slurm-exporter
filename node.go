@@ -72,8 +72,9 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 		cpuTotal, _ := strconv.ParseUint(cpuInfo[3], 10, 64)
 
     if node[5] != "(null)" {
-      avgres := strings.Split(node[5], ":")
-      tmpstr := strings.Split(node[6], "(")
+      tmpstr := strings.Split(node[5], "(")
+      avgres := strings.Split(tmpstr[0], ":")
+      tmpstr = strings.Split(node[6], "(")
       usedgres := strings.Split(tmpstr[0], ":")
       gpuType := avgres[1]
       gpuTotal, _ := strconv.ParseUint(avgres[2], 10, 64)
