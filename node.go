@@ -72,13 +72,12 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 		cpuTotal, _ := strconv.ParseUint(cpuInfo[3], 10, 64)
 
     if node[5] != "(null)" {
-      tmpstr := strings.Split(node[5], "(")
-      avgres := strings.Split(tmpstr[0], ":")
-      tmpstr = strings.Split(node[6], "(")
-      usedgres := strings.Split(tmpstr[0], ":")
-      gpuType := avgres[1]
-      gpuTotal, _ := strconv.ParseUint(avgres[2], 10, 64)
-      gpuAlloc, _ := strconv.ParseUint(usedgres[2], 10, 64)
+      // Ignore everything after opening parenthesis and split into type, name and count
+      availableTRES := strings.Split(strings.Split(node[5], "(")[0], ":")
+      usedTRES := strings.Split(strings.Split(node[6], "(")[0], ":")
+      gpuType := availableTRES[1]
+      gpuTotal, _ := strconv.ParseUint(availableTRES[2], 10, 64)
+      gpuAlloc, _ := strconv.ParseUint(usedTRES[2], 10, 64)
 
       nodes[nodeName].gpuAlloc = gpuAlloc
       nodes[nodeName].gpuTotal = gpuTotal
@@ -100,7 +99,7 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 // NodeData executes the sinfo command to get data for each node
 // It returns the output of the sinfo command
 func NodeData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-N", "-O", "NodeList,AllocMem,Memory,CPUsState,StateLong,Gres:30,Gresused:30")
+	cmd := exec.Command("sinfo", "-h", "-N", "-O", "NodeList,AllocMem,Memory,CPUsState,StateLong,Gres:50,Gresused:50")
 	out, err := cmd.Output()
 	if err != nil {
 		log.Fatal(err)
@@ -158,7 +157,9 @@ func (nc *NodeCollector) Collect(ch chan<- prometheus.Metric) {
 		ch <- prometheus.MustNewConstMetric(nc.cpuTotal, prometheus.GaugeValue, float64(nodes[node].cpuTotal), node, nodes[node].nodeStatus)
 		ch <- prometheus.MustNewConstMetric(nc.memAlloc, prometheus.GaugeValue, float64(nodes[node].memAlloc), node, nodes[node].nodeStatus)
 		ch <- prometheus.MustNewConstMetric(nc.memTotal, prometheus.GaugeValue, float64(nodes[node].memTotal), node, nodes[node].nodeStatus)
-		ch <- prometheus.MustNewConstMetric(nc.gpuAlloc, prometheus.GaugeValue, float64(nodes[node].gpuAlloc), node, nodes[node].nodeStatus, nodes[node].gpuType)
-		ch <- prometheus.MustNewConstMetric(nc.gpuTotal, prometheus.GaugeValue, float64(nodes[node].gpuTotal), node, nodes[node].nodeStatus, nodes[node].gpuType)
+    if nodes[node].gpuType != "" {
+		  ch <- prometheus.MustNewConstMetric(nc.gpuAlloc, prometheus.GaugeValue, float64(nodes[node].gpuAlloc), node, nodes[node].nodeStatus, nodes[node].gpuType)
+		  ch <- prometheus.MustNewConstMetric(nc.gpuTotal, prometheus.GaugeValue, float64(nodes[node].gpuTotal), node, nodes[node].nodeStatus, nodes[node].gpuType)
+    }
 	}
 }
