@@ -38,19 +38,15 @@ func GPUsGetMetrics() *GPUsMetrics {
 func ParseAllocatedGPUs() float64 {
 	var num_gpus = 0.0
 
- args := []string{"-a", "-X", "--format=AllocTRES", "--state=RUNNING", "--noheader", "--parsable2"}
+	args := []string{"-a", "-X", "--format=Allocgres", "--state=RUNNING", "--noheader", "--parsable2"}
 	output := string(Execute("sacct", args))
 	if len(output) > 0 {
 		for _, line := range strings.Split(output, "\n") {
 			if len(line) > 0 {
 				line = strings.Trim(line, "\"")
-       for _, resource := range strings.Split(line, ",") {
-         if strings.HasPrefix(resource, "gres/gpu=") {
-           descriptor := strings.TrimPrefix(resource, "gres/gpu=")
-           job_gpus, _ := strconv.ParseFloat(descriptor, 64)
-           num_gpus += job_gpus
-         }
-       }
+				descriptor := strings.TrimPrefix(line, "gpu:")
+				job_gpus, _ := strconv.ParseFloat(descriptor, 64)
+				num_gpus += job_gpus
 			}
 		}
 	}
@@ -67,17 +63,11 @@ func ParseTotalGPUs() float64 {
 		for _, line := range strings.Split(output, "\n") {
 			if len(line) > 0 {
 				line = strings.Trim(line, "\"")
-       gres := strings.Fields(line)[1]
-       // gres column format: comma-delimited list of resources
-       for _, resource := range strings.Split(gres, ",") {
-         if strings.HasPrefix(resource, "gpu:") {
-           // format: gpu:<type>:N(S:<something>), e.g. gpu:RTX2070:2(S:0)
-           descriptor := strings.Split(resource, ":")[2]
-           descriptor = strings.Split(descriptor, "(")[0]
-           node_gpus, _ :=  strconv.ParseFloat(descriptor, 64)
-           num_gpus += node_gpus
-         }
-       }
+				descriptor := strings.Fields(line)[1]
+				descriptor = strings.TrimPrefix(descriptor, "gpu:")
+				descriptor = strings.Split(descriptor, "(")[0]
+				node_gpus, _ :=  strconv.ParseFloat(descriptor, 64)
+				num_gpus += node_gpus
 			}
 		}
 	}
