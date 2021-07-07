@@ -35,7 +35,8 @@ slurm_node_cpus_other{name="a048",status="mix"} 0
 slurm_node_cpus_total{name="a048",status="mix"} 16
 slurm_node_mem_allocated{name="a048",status="mix"} 179384
 slurm_node_mem_total{name="a048",status="mix"} 193000
-
+slurm_node_gpu_allocated{gputype="rtx5000",name="a048",status="mix"} 2
+slurm_node_gpu_total{gputype="rtx5000",name="a048",status="mix"} 4
 */
 
 func TestNodeMetrics(t *testing.T) {
@@ -54,4 +55,6 @@ func TestNodeMetrics(t *testing.T) {
 	assert.Equal(t, uint64(0), metrics["b001"].cpuIdle)
 	assert.Equal(t, uint64(0), metrics["b001"].cpuOther)
 	assert.Equal(t, uint64(32), metrics["b001"].cpuTotal)
+	assert.Equal(t, uint64(4), metrics["b001"].gpuAlloc)
+	assert.Equal(t, uint64(4), metrics["b001"].gpuTotal)
 }
