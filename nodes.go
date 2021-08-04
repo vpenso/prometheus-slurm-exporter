@@ -1,4 +1,5 @@
 /* Copyright 2017 Victor Penso, Matteo Dessalvi
+   Copyright 2021 Rovanion Luckey
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,9 +18,6 @@ package main
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"io/ioutil"
-	"log"
-	"os/exec"
 	"regexp"
 	"sort"
 	"strconv"
@@ -37,10 +35,6 @@ type NodesMetrics struct {
 	maint float64
 	mix   float64
 	resv  float64
-}
-
-func NodesGetMetrics() *NodesMetrics {
-	return ParseNodesMetrics(NodesData())
 }
 
 func RemoveDuplicates(s []string) []string {
@@ -110,21 +104,9 @@ func ParseNodesMetrics(input []byte) *NodesMetrics {
 	return &nm
 }
 
-// Execute the sinfo command and return its output
-func NodesData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-o %D,%T")
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
-	}
-	out, _ := ioutil.ReadAll(stdout)
-	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
-	}
-	return out
+// Execute the sinfo command and return the parsed output.
+func GetNodesMetrics() *NodesMetrics {
+	return ParseNodesMetrics(Subprocess("sinfo", "-h", "-o %D,%T"))
 }
 
 /*
@@ -175,7 +157,7 @@ func (nc *NodesCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- nc.resv
 }
 func (nc *NodesCollector) Collect(ch chan<- prometheus.Metric) {
-	nm := NodesGetMetrics()
+	nm := GetNodesMetrics()
 	ch <- prometheus.MustNewConstMetric(nc.alloc, prometheus.GaugeValue, nm.alloc)
 	ch <- prometheus.MustNewConstMetric(nc.comp, prometheus.GaugeValue, nm.comp)
 	ch <- prometheus.MustNewConstMetric(nc.down, prometheus.GaugeValue, nm.down)

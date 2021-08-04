@@ -1,4 +1,5 @@
 /* Copyright 2020 Victor Penso
+Copyright 2021 Rovanion Luckey
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,30 +17,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
-        "io/ioutil"
-        "os/exec"
-        "log"
         "strings"
         "strconv"
         "regexp"
         "github.com/prometheus/client_golang/prometheus"
 )
-
-func AccountsData() []byte {
-        cmd := exec.Command("squeue","-a","-r","-h","-o %A|%a|%T|%C")
-        stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
-	}
-	out, _ := ioutil.ReadAll(stdout)
-	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
-	}
-	return out
-}
 
 type JobMetrics struct {
         pending float64
@@ -78,6 +60,10 @@ func ParseAccountsMetrics(input []byte) map[string]*JobMetrics {
         return accounts
 }
 
+func GetAccountsMetrics() map[string]*JobMetrics {
+	return ParseAccountsMetrics(Subprocess("squeue", "-a", "-r", "-h", "-o %A|%a|%T|%C"))
+}
+
 type AccountsCollector struct {
         pending *prometheus.Desc
         running *prometheus.Desc
@@ -103,7 +89,7 @@ func (ac *AccountsCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (ac *AccountsCollector) Collect(ch chan<- prometheus.Metric) {
-        am := ParseAccountsMetrics(AccountsData())
+        am := GetAccountsMetrics()
         for a := range am {
                 if am[a].pending > 0 {
                         ch <- prometheus.MustNewConstMetric(ac.pending, prometheus.GaugeValue, am[a].pending, a)

@@ -1,4 +1,7 @@
+// +build unit
+
 /* Copyright 2017 Victor Penso, Matteo Dessalvi
+   Copyright 2021 Rovanion Luckey
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,14 +26,44 @@ import (
 
 func TestParseQueueMetrics(t *testing.T) {
 	// Read the input data from a file
-	file, err := os.Open("test_data/squeue.txt")
-	if err != nil {
-		t.Fatalf("Can not open test data: %v", err)
-	}
-	data, err := ioutil.ReadAll(file)
-	t.Logf("%+v", ParseQueueMetrics(data))
-}
+	file, _ := os.Open("test_data/squeue.txt")
+	data, _ := ioutil.ReadAll(file)
+	queueMetrics := ParseQueueMetrics(data)
 
-func TestQueueGetMetrics(t *testing.T) {
-	t.Logf("%+v", QueueGetMetrics())
+	if queueMetrics.pending != 4.0 {
+		t.Errorf("Miscount of pending jobs, got %v, wanted: %f", queueMetrics.pending, 4.0)
+	}
+	if queueMetrics.pending_dep != 0.0 {
+		t.Errorf("Miscount of pending_dep jobs, got %v, wanted: %f", queueMetrics.pending_dep, 0.0)
+	}
+	if queueMetrics.running != 28.0 {
+		t.Errorf("Miscount of running jobs, got %v, wanted: %f", queueMetrics.running, 28.0)
+	}
+	if queueMetrics.suspended != 1.0 {
+		t.Errorf("Miscount of suspended jobs, got %v, wanted: %f", queueMetrics.suspended, 1.0)
+	}
+	if queueMetrics.cancelled != 1.0 {
+		t.Errorf("Miscount of cancelled jobs, got %v, wanted: %f", queueMetrics.cancelled, 1.0)
+	}
+	if queueMetrics.completing != 2.0 {
+		t.Errorf("Miscount of completing jobs, got %v, wanted: %f", queueMetrics.completing, 2.0)
+	}
+	if queueMetrics.completed != 1.0 {
+		t.Errorf("Miscount of completed jobs, got %v, wanted: %f", queueMetrics.completed, 1.0)
+	}
+	if queueMetrics.configuring != 1.0 {
+		t.Errorf("Miscount of configuring jobs, got %v, wanted: %f", queueMetrics.configuring, 1.0)
+	}
+	if queueMetrics.failed != 1.0 {
+		t.Errorf("Miscount of failed jobs, got %v, wanted: %f", queueMetrics.failed, 1.0)
+	}
+	if queueMetrics.timeout != 1.0 {
+		t.Errorf("Miscount of timeout jobs, got %v, wanted: %f", queueMetrics.timeout, 1.0)
+	}
+	if queueMetrics.preempted != 1.0 {
+		t.Errorf("Miscount of preempted jobs, got %v, wanted: %f", queueMetrics.preempted, 1.0)
+	}
+	if queueMetrics.node_fail != 1.0 {
+		t.Errorf("Miscount of node_fail jobs, got %v, wanted: %f", queueMetrics.node_fail, 1.0)
+	}
 }

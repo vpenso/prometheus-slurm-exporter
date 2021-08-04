@@ -1,4 +1,5 @@
 /* Copyright 2021 Victor Penso
+   Copyright 2021 Rovanion Luckey
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,37 +17,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
-        "io/ioutil"
-        "os/exec"
-        "log"
-        "strings"
-        "strconv"
-        "github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus"
+	"strconv"
+	"strings"
 )
-
-func FairShareData() []byte {
-        cmd := exec.Command( "sshare", "-n", "-P", "-o", "account,fairshare" )
-        stdout, err := cmd.StdoutPipe()
-        if err != nil {
-                log.Fatal(err)
-        }
-        if err := cmd.Start(); err != nil {
-                log.Fatal(err)
-        }
-        out, _ := ioutil.ReadAll(stdout)
-        if err := cmd.Wait(); err != nil {
-                log.Fatal(err)
-        }
-        return out
-}
 
 type FairShareMetrics struct {
         fairshare float64
 }
 
-func ParseFairShareMetrics() map[string]*FairShareMetrics {
+func ParseFairShareMetrics(sshareOutput []byte) map[string]*FairShareMetrics {
         accounts := make(map[string]*FairShareMetrics)
-        lines := strings.Split(string(FairShareData()), "\n")
+        lines := strings.Split(string(sshareOutput), "\n")
         for _, line := range lines {
                 if ! strings.HasPrefix(line,"  ") {
                         if strings.Contains(line,"|") {
@@ -61,6 +43,10 @@ func ParseFairShareMetrics() map[string]*FairShareMetrics {
                 }
         }
         return accounts
+}
+
+func GetFairShareMetrics() map[string]*FairShareMetrics {
+	return ParseFairShareMetrics(Subprocess("sshare", "-n", "-P", "-o", "account,fairshare"))
 }
 
 type FairShareCollector struct {
@@ -79,7 +65,7 @@ func (fsc *FairShareCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (fsc *FairShareCollector) Collect(ch chan<- prometheus.Metric) {
-        fsm := ParseFairShareMetrics()
+        fsm := GetFairShareMetrics()
         for f := range fsm {
                 ch <- prometheus.MustNewConstMetric(fsc.fairshare, prometheus.GaugeValue, fsm[f].fairshare, f)
         }

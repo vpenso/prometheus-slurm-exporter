@@ -1,4 +1,5 @@
 /* Copyright 2017 Victor Penso, Matteo Dessalvi
+   Copyright 2021 Rovanion Luckey
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,9 +18,6 @@ package main
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"io/ioutil"
-	"log"
-	"os/exec"
 	"strings"
 )
 
@@ -36,11 +34,6 @@ type QueueMetrics struct {
 	timeout     float64
 	preempted   float64
 	node_fail   float64
-}
-
-// Returns the scheduler metrics
-func QueueGetMetrics() *QueueMetrics {
-	return ParseQueueMetrics(QueueData())
 }
 
 func ParseQueueMetrics(input []byte) *QueueMetrics {
@@ -82,21 +75,10 @@ func ParseQueueMetrics(input []byte) *QueueMetrics {
 	return &qm
 }
 
-// Execute the squeue command and return its output
-func QueueData() []byte {
-	cmd := exec.Command("squeue", "-a", "-r", "-h", "-o %A,%T,%r", "--states=all")
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
-	}
-	out, _ := ioutil.ReadAll(stdout)
-	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
-	}
-	return out
+// Returns the scheduler metrics
+func GetQueueMetrics() *QueueMetrics {
+	return ParseQueueMetrics(
+		Subprocess("squeue", "-a", "-r", "-h", "-o %A,%T,%r", "--states=all"))
 }
 
 /*
@@ -104,7 +86,6 @@ func QueueData() []byte {
  * Slurm queue metrics into it.
  * https://godoc.org/github.com/prometheus/client_golang/prometheus#Collector
  */
-
 func NewQueueCollector() *QueueCollector {
 	return &QueueCollector{
 		pending:     prometheus.NewDesc("slurm_queue_pending", "Pending jobs in queue", nil, nil),
@@ -153,7 +134,7 @@ func (qc *QueueCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (qc *QueueCollector) Collect(ch chan<- prometheus.Metric) {
-	qm := QueueGetMetrics()
+	qm := GetQueueMetrics()
 	ch <- prometheus.MustNewConstMetric(qc.pending, prometheus.GaugeValue, qm.pending)
 	ch <- prometheus.MustNewConstMetric(qc.pending_dep, prometheus.GaugeValue, qm.pending_dep)
 	ch <- prometheus.MustNewConstMetric(qc.running, prometheus.GaugeValue, qm.running)

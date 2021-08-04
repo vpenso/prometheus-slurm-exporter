@@ -1,4 +1,5 @@
 /* Copyright 2020 Joeri Hermans, Victor Penso, Matteo Dessalvi
+   Copyright 2021 Rovanion Luckey
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,11 +18,8 @@ package main
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
-	"io/ioutil"
-	"os/exec"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 type GPUsMetrics struct {
@@ -31,15 +29,9 @@ type GPUsMetrics struct {
 	utilization float64
 }
 
-func GPUsGetMetrics() *GPUsMetrics {
-	return ParseGPUsMetrics()
-}
-
-func ParseAllocatedGPUs() float64 {
+func ParseAllocatedGPUs(sacctOutput []byte) float64 {
 	var num_gpus = 0.0
-
-	args := []string{"-a", "-X", "--format=Allocgres", "--state=RUNNING", "--noheader", "--parsable2"}
-	output := string(Execute("sacct", args))
+	output := string(sacctOutput)
 	if len(output) > 0 {
 		for _, line := range strings.Split(output, "\n") {
 			if len(line) > 0 {
@@ -50,15 +42,17 @@ func ParseAllocatedGPUs() float64 {
 			}
 		}
 	}
-
 	return num_gpus
 }
 
-func ParseTotalGPUs() float64 {
-	var num_gpus = 0.0
+func GetAllocatedGPUs() float64 {
+	return ParseAllocatedGPUs(
+		Subprocess("sacct", "-a", "-X", "--format=Allocgres", "--state=RUNNING", "--noheader", "--parsable2"))
+}
 
-	args := []string{"-h", "-o \"%n %G\""}
-	output := string(Execute("sinfo", args))
+func ParseTotalGPUs(sinfoOutput []byte) float64 {
+	var num_gpus = 0.0
+	output := string(sinfoOutput)
 	if len(output) > 0 {
 		for _, line := range strings.Split(output, "\n") {
 			if len(line) > 0 {
@@ -66,41 +60,28 @@ func ParseTotalGPUs() float64 {
 				descriptor := strings.Fields(line)[1]
 				descriptor = strings.TrimPrefix(descriptor, "gpu:")
 				descriptor = strings.Split(descriptor, "(")[0]
-				node_gpus, _ :=  strconv.ParseFloat(descriptor, 64)
+				node_gpus, _ := strconv.ParseFloat(descriptor, 64)
 				num_gpus += node_gpus
 			}
 		}
 	}
-
 	return num_gpus
 }
 
-func ParseGPUsMetrics() *GPUsMetrics {
+func GetTotalGPUs() float64 {
+	return ParseTotalGPUs(
+		Subprocess("sinfo", "-h", "-o \"%n %G\""))
+}
+
+func GetGPUsMetrics() *GPUsMetrics {
 	var gm GPUsMetrics
-	total_gpus := ParseTotalGPUs()
-	allocated_gpus := ParseAllocatedGPUs()
+	total_gpus := GetTotalGPUs()
+	allocated_gpus := GetAllocatedGPUs()
 	gm.alloc = allocated_gpus
 	gm.idle = total_gpus - allocated_gpus
 	gm.total = total_gpus
 	gm.utilization = allocated_gpus / total_gpus
 	return &gm
-}
-
-// Execute the sinfo command and return its output
-func Execute(command string, arguments []string) []byte {
-	cmd := exec.Command(command, arguments...)
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
-	}
-	out, _ := ioutil.ReadAll(stdout)
-	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
-	}
-	return out
 }
 
 /*
@@ -133,7 +114,7 @@ func (cc *GPUsCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- cc.utilization
 }
 func (cc *GPUsCollector) Collect(ch chan<- prometheus.Metric) {
-	cm := GPUsGetMetrics()
+	cm := GetGPUsMetrics()
 	ch <- prometheus.MustNewConstMetric(cc.alloc, prometheus.GaugeValue, cm.alloc)
 	ch <- prometheus.MustNewConstMetric(cc.idle, prometheus.GaugeValue, cm.idle)
 	ch <- prometheus.MustNewConstMetric(cc.total, prometheus.GaugeValue, cm.total)
