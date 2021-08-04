@@ -46,7 +46,6 @@ func TestNodeMetrics(t *testing.T) {
 		t.Fatalf("Can not open test data: %v", err)
 	}
 	metrics := ParseNodeMetrics(data)
-	// t.Logf("%+v", metrics)
 
 	assert.Contains(t, metrics, "b001")
 	assert.Equal(t, uint64(327680), metrics["b001"].memAlloc)

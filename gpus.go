@@ -92,9 +92,9 @@ func GetGPUsMetrics() *GPUsMetrics {
 
 func NewGPUsCollector() *GPUsCollector {
 	return &GPUsCollector{
-		alloc:       prometheus.NewDesc("slurm_gpus_alloc", "Allocated GPUs", nil, nil),
-		idle:        prometheus.NewDesc("slurm_gpus_idle", "Idle GPUs", nil, nil),
-		total:       prometheus.NewDesc("slurm_gpus_total", "Total GPUs", nil, nil),
+		alloc: prometheus.NewDesc("slurm_gpus_alloc", "Allocated GPUs", nil, nil),
+		idle:  prometheus.NewDesc("slurm_gpus_idle", "Idle GPUs", nil, nil),
+		total: prometheus.NewDesc("slurm_gpus_total", "Total GPUs", nil, nil),
 		utilization: prometheus.NewDesc("slurm_gpus_utilization", "Total GPU utilization", nil, nil),
 	}
 }

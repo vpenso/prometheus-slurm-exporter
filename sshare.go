@@ -23,26 +23,26 @@ import (
 )
 
 type FairShareMetrics struct {
-	fairshare float64
+        fairshare float64
 }
 
 func ParseFairShareMetrics(sshareOutput []byte) map[string]*FairShareMetrics {
-	accounts := make(map[string]*FairShareMetrics)
-	lines := strings.Split(string(sshareOutput), "\n")
-	for _, line := range lines {
-		if !strings.HasPrefix(line, "  ") {
-			if strings.Contains(line, "|") {
-				account := strings.Trim(strings.Split(line, "|")[0], " ")
-				_, key := accounts[account]
-				if !key {
-					accounts[account] = &FairShareMetrics{0}
-				}
-				fairshare, _ := strconv.ParseFloat(strings.Split(line, "|")[1], 64)
-				accounts[account].fairshare = fairshare
-			}
-		}
-	}
-	return accounts
+        accounts := make(map[string]*FairShareMetrics)
+        lines := strings.Split(string(sshareOutput), "\n")
+        for _, line := range lines {
+                if ! strings.HasPrefix(line,"  ") {
+                        if strings.Contains(line,"|") {
+                                account := strings.Trim(strings.Split(line,"|")[0]," ")
+                                _,key := accounts[account]
+                                if !key {
+                                        accounts[account] = &FairShareMetrics{0}
+                                }
+                                fairshare,_ := strconv.ParseFloat(strings.Split(line,"|")[1],64)
+                                accounts[account].fairshare = fairshare
+                        }
+                }
+        }
+        return accounts
 }
 
 func GetFairShareMetrics() map[string]*FairShareMetrics {
@@ -50,23 +50,23 @@ func GetFairShareMetrics() map[string]*FairShareMetrics {
 }
 
 type FairShareCollector struct {
-	fairshare *prometheus.Desc
+        fairshare *prometheus.Desc
 }
 
 func NewFairShareCollector() *FairShareCollector {
-	labels := []string{"account"}
-	return &FairShareCollector{
-		fairshare: prometheus.NewDesc("slurm_account_fairshare", "FairShare for account", labels, nil),
-	}
+        labels := []string{"account"}
+        return &FairShareCollector{
+                fairshare: prometheus.NewDesc("slurm_account_fairshare","FairShare for account" , labels,nil),
+        }
 }
 
 func (fsc *FairShareCollector) Describe(ch chan<- *prometheus.Desc) {
-	ch <- fsc.fairshare
+        ch <- fsc.fairshare
 }
 
 func (fsc *FairShareCollector) Collect(ch chan<- prometheus.Metric) {
-	fsm := GetFairShareMetrics()
-	for f := range fsm {
-		ch <- prometheus.MustNewConstMetric(fsc.fairshare, prometheus.GaugeValue, fsm[f].fairshare, f)
-	}
+        fsm := GetFairShareMetrics()
+        for f := range fsm {
+                ch <- prometheus.MustNewConstMetric(fsc.fairshare, prometheus.GaugeValue, fsm[f].fairshare, f)
+        }
 }
