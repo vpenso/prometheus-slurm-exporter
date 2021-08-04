@@ -16,8 +16,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
-	"log"
-	"os/exec"
 	"sort"
 	"strconv"
 	"strings"
@@ -36,8 +34,8 @@ type NodeMetrics struct {
 	nodeStatus string
 }
 
-func NodeGetMetrics() map[string]*NodeMetrics {
-	return ParseNodeMetrics(NodeData())
+func GetNodeMetrics() map[string]*NodeMetrics {
+	return ParseNodeMetrics(Subprocess("sinfo", "-h", "-N", "-O", "NodeList,AllocMem,Memory,CPUsState,StateLong"))
 }
 
 // ParseNodeMetrics takes the output of sinfo with node data
@@ -79,17 +77,6 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 	return nodes
 }
 
-// NodeData executes the sinfo command to get data for each node
-// It returns the output of the sinfo command
-func NodeData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-N", "-O", "NodeList,AllocMem,Memory,CPUsState,StateLong")
-	out, err := cmd.Output()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return out
-}
-
 type NodeCollector struct {
 	cpuAlloc *prometheus.Desc
 	cpuIdle  *prometheus.Desc
@@ -125,7 +112,7 @@ func (nc *NodeCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 
 func (nc *NodeCollector) Collect(ch chan<- prometheus.Metric) {
-	nodes := NodeGetMetrics()
+	nodes := GetNodeMetrics()
 	for node := range nodes {
 		ch <- prometheus.MustNewConstMetric(nc.cpuAlloc, prometheus.GaugeValue, float64(nodes[node].cpuAlloc), node, nodes[node].nodeStatus)
 		ch <- prometheus.MustNewConstMetric(nc.cpuIdle,  prometheus.GaugeValue, float64(nodes[node].cpuIdle),  node, nodes[node].nodeStatus)
