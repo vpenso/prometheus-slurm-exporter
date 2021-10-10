@@ -24,7 +24,7 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 - Information extracted from the SLURM [**sinfo**](https://slurm.schedmd.com/sinfo.html) and [**sacct**](https://slurm.schedmd.com/sacct.html) command.
 - [Slurm GRES scheduling](https://slurm.schedmd.com/gres.html)
 
-**NOTE**: since version **0.19**, GPU accounting has to be **explicitly** enabled adding the _-gpu-acct_ option to the command line otherwise it will not be activated.
+**NOTE**: since version **0.19**, GPU accounting has to be **explicitly** enabled adding the _-gpus-acct_ option to the command line otherwise it will not be activated.
 
 Be aware that:
 
