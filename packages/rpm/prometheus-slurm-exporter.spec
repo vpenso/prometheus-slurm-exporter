@@ -3,7 +3,7 @@
 %define        __os_install_post %{_dbpath}/brp-compress
 
 Name:           prometheus-slurm-exporter
-Version:        0.3
+Version:        0.19
 Release:        1%{?dist}
 Summary:        Prometheus exporter for SLURM metrics
 Group:          Monitoring
@@ -11,7 +11,8 @@ Group:          Monitoring
 License:        GPL 3.0
 URL:            https://github.com/vpenso/prometheus-slurm-exporter
 
-Source0:        https://github.com/vpenso/prometheus-slurm-exporter/releases/download/%{version}/slurm_exporter-%{version}.linux-amd64.tar.gz
+#Source0:        https://github.com/vpenso/prometheus-slurm-exporter/releases/download/%{version}/slurm_exporter-%{version}.linux-amd64.tar.gz
+Source0:        https://github.com/vpenso/prometheus-slurm-exporter/archive/refs/tags/%{version}.tar.gz
 Source1:        prometheus-slurm-exporter.service
 Source2:        LICENSE
 Source3:        README.md
@@ -33,7 +34,7 @@ A Prometheus exporter for metrics extracted from the Slurm resource scheduling s
 %setup -q
 
 %build
-# Empty section.
+make
 
 %install
 rm -rf %{buildroot}
@@ -69,7 +70,7 @@ systemctl start %{name}.service
 
 %files
 %defattr(-,root,root,-)
-/usr/share/doc/prometheus-slurm-exporter-0.3/
+/usr/share/doc/prometheus-slurm-exporter-%{version}/
 %{_bindir}/prometheus-slurm-exporter
 %{_unitdir}/%{name}.service
 %attr(755, prometheus, prometheus)/var/lib/prometheus
