@@ -1,0 +1,36 @@
+name: CI Grader
+
+on: push
+
+jobs:
+  centos8:
+    runs-on: ubuntu-latest
+    container:
+      image: centos:centos8
+      #options: --privileged
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Prerequisites
+        run: |
+          yum install -y rpm-build rpmdevtools redhat-rpm-config make tree
+      - name: Preparing
+        run: |
+          mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS,tmp}
+          echo '%_topdir %(echo $HOME)/rpmbuild' > ~/.rpmmacros
+          cp README.md ~/rpmbuild/SOURCES
+          cp LICENSE ~/rpmbuild/SOURCES
+          cp lib/systemd/prometheus-slurm-exporter.service ~/rpmbuild/SOURCES
+          cp packaging/rpm/*.spec ~/rpmbuild/SPECS
+          cd $HOME/rpmbuild/SPECS
+      - name: Building
+        run: |
+          rpmbuild -ba prometheus-slurm-exporter.spec
+      - name: Results
+        run: |
+          ls -R $HOME/rpmbuild/RPMS/x86_64
+          tree $HOME/rpmbuild/RPMS/x86_64
+      - name: Upload RPMs
+        uses: actions/upload-artifact@v2
+        with:
+          path: $HOME/rpmbuild/RPMS/x86_64
