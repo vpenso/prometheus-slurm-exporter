@@ -69,8 +69,7 @@ systemctl start %{name}.service
 
 %files
 %defattr(-,root,root,-)
-%doc LICENSE
-%doc README.md
+/usr/share/doc/prometheus-slurm-exporter-0.3/
 %{_bindir}/prometheus-slurm-exporter
 %{_unitdir}/%{name}.service
 %attr(755, prometheus, prometheus)/var/lib/prometheus

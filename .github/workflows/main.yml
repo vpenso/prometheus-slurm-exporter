@@ -1,4 +1,4 @@
-name: CI Grader
+name: Prometheus Slurm Exporter
 
 on: push
 
@@ -7,30 +7,37 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: centos:centos8
-      #options: --privileged
 
     steps:
       - uses: actions/checkout@v2
-      - name: Prerequisites
+      - name: Installing Prerequisites
         run: |
           yum install -y rpm-build rpmdevtools redhat-rpm-config make tree
-      - name: Preparing
+      - name: Preparing Environment
         run: |
           mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS,tmp}
           echo '%_topdir %(echo $HOME)/rpmbuild' > ~/.rpmmacros
           cp README.md ~/rpmbuild/SOURCES
           cp LICENSE ~/rpmbuild/SOURCES
           cp lib/systemd/prometheus-slurm-exporter.service ~/rpmbuild/SOURCES
-          cp packaging/rpm/*.spec ~/rpmbuild/SPECS
+          cp packages/rpm/*.spec ~/rpmbuild/SPECS
           cd $HOME/rpmbuild/SPECS
-      - name: Building
+      - name: Building RPM
         run: |
-          rpmbuild -ba prometheus-slurm-exporter.spec
-      - name: Results
-        run: |
-          ls -R $HOME/rpmbuild/RPMS/x86_64
-          tree $HOME/rpmbuild/RPMS/x86_64
-      - name: Upload RPMs
+          cd $HOME/rpmbuild
+          spectool -g -R SPECS/prometheus-slurm-exporter.spec
+          rpmbuild -ba SPECS/prometheus-slurm-exporter.spec
+      - name: Uploading RPM
         uses: actions/upload-artifact@v2
         with:
-          path: $HOME/rpmbuild/RPMS/x86_64
+          name: prometheus-slurm-exporter
+          path: /github/home/rpmbuild/RPMS/x86_64/*.rpm
+#      - name: Uploading RPM
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          upload_url: ${{ steps.create_release.outputs.upload_url }}
+#          asset_path: /github/home/rpmbuild/RPMS/x86_64
+#          asset_name: my-artifact.zip
+#          asset_content_type: application/zip
