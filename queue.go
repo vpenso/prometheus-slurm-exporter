@@ -24,18 +24,19 @@ import (
 )
 
 type QueueMetrics struct {
-	pending     float64
-	pending_dep float64
-	running     float64
-	suspended   float64
-	cancelled   float64
-	completing  float64
-	completed   float64
-	configuring float64
-	failed      float64
-	timeout     float64
-	preempted   float64
-	node_fail   float64
+	pending       float64
+	pending_dep   float64
+	running       float64
+	suspended     float64
+	cancelled     float64
+	completing    float64
+	completed     float64
+	configuring   float64
+	failed        float64
+	timeout       float64
+	preempted     float64
+	node_fail     float64
+	out_of_memory float64
 }
 
 // Returns the scheduler metrics
@@ -76,6 +77,8 @@ func ParseQueueMetrics(input []byte) *QueueMetrics {
 				qm.preempted++
 			case "NODE_FAIL":
 				qm.node_fail++
+                        case "OUT_OF_MEMORY":
+                                qm.out_of_memory++
 			}
 		}
 	}
@@ -107,34 +110,36 @@ func QueueData() []byte {
 
 func NewQueueCollector() *QueueCollector {
 	return &QueueCollector{
-		pending:     prometheus.NewDesc("slurm_queue_pending", "Pending jobs in queue", nil, nil),
-		pending_dep: prometheus.NewDesc("slurm_queue_pending_dependency", "Pending jobs because of dependency in queue", nil, nil),
-		running:     prometheus.NewDesc("slurm_queue_running", "Running jobs in the cluster", nil, nil),
-		suspended:   prometheus.NewDesc("slurm_queue_suspended", "Suspended jobs in the cluster", nil, nil),
-		cancelled:   prometheus.NewDesc("slurm_queue_cancelled", "Cancelled jobs in the cluster", nil, nil),
-		completing:  prometheus.NewDesc("slurm_queue_completing", "Completing jobs in the cluster", nil, nil),
-		completed:   prometheus.NewDesc("slurm_queue_completed", "Completed jobs in the cluster", nil, nil),
-		configuring: prometheus.NewDesc("slurm_queue_configuring", "Configuring jobs in the cluster", nil, nil),
-		failed:      prometheus.NewDesc("slurm_queue_failed", "Number of failed jobs", nil, nil),
-		timeout:     prometheus.NewDesc("slurm_queue_timeout", "Jobs stopped by timeout", nil, nil),
-		preempted:   prometheus.NewDesc("slurm_queue_preempted", "Number of preempted jobs", nil, nil),
-		node_fail:   prometheus.NewDesc("slurm_queue_node_fail", "Number of jobs stopped due to node fail", nil, nil),
+		pending:       prometheus.NewDesc("slurm_queue_pending", "Pending jobs in queue", nil, nil),
+		pending_dep:   prometheus.NewDesc("slurm_queue_pending_dependency", "Pending jobs because of dependency in queue", nil, nil),
+		running:       prometheus.NewDesc("slurm_queue_running", "Running jobs in the cluster", nil, nil),
+		suspended:     prometheus.NewDesc("slurm_queue_suspended", "Suspended jobs in the cluster", nil, nil),
+		cancelled:     prometheus.NewDesc("slurm_queue_cancelled", "Cancelled jobs in the cluster", nil, nil),
+		completing:    prometheus.NewDesc("slurm_queue_completing", "Completing jobs in the cluster", nil, nil),
+		completed:     prometheus.NewDesc("slurm_queue_completed", "Completed jobs in the cluster", nil, nil),
+		configuring:   prometheus.NewDesc("slurm_queue_configuring", "Configuring jobs in the cluster", nil, nil),
+		failed:        prometheus.NewDesc("slurm_queue_failed", "Number of failed jobs", nil, nil),
+		timeout:       prometheus.NewDesc("slurm_queue_timeout", "Jobs stopped by timeout", nil, nil),
+		preempted:     prometheus.NewDesc("slurm_queue_preempted", "Number of preempted jobs", nil, nil),
+		node_fail:     prometheus.NewDesc("slurm_queue_node_fail", "Number of jobs stopped due to node fail", nil, nil),
+                out_of_memory: prometheus.NewDesc("slurm_queue_out_of_memory", "Number of jobs stopped by oomkiller", nil, nil),
 	}
 }
 
 type QueueCollector struct {
-	pending     *prometheus.Desc
-	pending_dep *prometheus.Desc
-	running     *prometheus.Desc
-	suspended   *prometheus.Desc
-	cancelled   *prometheus.Desc
-	completing  *prometheus.Desc
-	completed   *prometheus.Desc
-	configuring *prometheus.Desc
-	failed      *prometheus.Desc
-	timeout     *prometheus.Desc
-	preempted   *prometheus.Desc
-	node_fail   *prometheus.Desc
+	pending       *prometheus.Desc
+	pending_dep   *prometheus.Desc
+	running       *prometheus.Desc
+	suspended     *prometheus.Desc
+	cancelled     *prometheus.Desc
+	completing    *prometheus.Desc
+	completed     *prometheus.Desc
+	configuring   *prometheus.Desc
+	failed        *prometheus.Desc
+	timeout       *prometheus.Desc
+	preempted     *prometheus.Desc
+	node_fail     *prometheus.Desc
+        out_of_memory *prometheus.Desc
 }
 
 func (qc *QueueCollector) Describe(ch chan<- *prometheus.Desc) {
@@ -150,6 +155,7 @@ func (qc *QueueCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- qc.timeout
 	ch <- qc.preempted
 	ch <- qc.node_fail
+        ch <- qc.out_of_memory
 }
 
 func (qc *QueueCollector) Collect(ch chan<- prometheus.Metric) {
@@ -166,4 +172,5 @@ func (qc *QueueCollector) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(qc.timeout, prometheus.GaugeValue, qm.timeout)
 	ch <- prometheus.MustNewConstMetric(qc.preempted, prometheus.GaugeValue, qm.preempted)
 	ch <- prometheus.MustNewConstMetric(qc.node_fail, prometheus.GaugeValue, qm.node_fail)
+        ch <- prometheus.MustNewConstMetric(qc.out_of_memory, prometheus.GaugeValue, qm.out_of_memory)
 }
