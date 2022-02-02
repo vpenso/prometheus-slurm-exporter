@@ -1,0 +1,5 @@
+host-01 gpu:2080:2(S:0),gpu:8000:2(S:0)
+host-02 gpu:2080:2(S:0),gpu:8000:2(S:0)
+host-03 gpu:A4000:4(S:0)
+host-04 gpu:1080:2(S:0)
+host-05 gpu:2080:1(S:0)
