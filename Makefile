@@ -1,20 +1,28 @@
 PROJECT_NAME = prometheus-slurm-exporter
-ifndef GOPATH
-	GOPATH=$(shell pwd):/usr/share/gocode
-endif
-GOFILES=accounts.go cpus.go gpus.go main.go node.go nodes.go partitions.go queue.go scheduler.go sshare.go users.go
-GOBIN=bin/$(PROJECT_NAME)
+SHELL := $(shell which bash) -eu -o pipefail
 
-build:
-	mkdir -p $(shell pwd)/bin
-	@echo "Build $(GOFILES) to $(GOBIN)"
-	@GOPATH=$(GOPATH) go build -o $(GOBIN) $(GOFILES)
+GOPATH := $(shell pwd)/go/modules
+GOBIN := bin/$(PROJECT_NAME)
+GOFILES := $(shell ls *.go)
 
-test:
-	@GOPATH=$(GOPATH) go test -v *.go
+.PHONY: build
+build: test $(GOBIN)
 
-run:
-	@GOPATH=$(GOPATH) go run $(GOFILES)
+$(GOBIN): go/modules/pkg/mod $(GOFILES)
+	mkdir -p bin
+	@echo "Building $(GOBIN)"
+	go build -v -o $(GOBIN)
+
+go/modules/pkg/mod: go.mod
+	go mod download
+
+.PHONY: test
+test: go/modules/pkg/mod $(GOFILES)
+	go test -v
+
+run: $(GOBIN)
+	$(GOBIN)
 
 clean:
-	if [ -f ${GOBIN} ] ; then rm -f ${GOBIN} ; fi
+	go clean -modcache
+	rm -fr bin/ go/
