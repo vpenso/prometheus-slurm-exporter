@@ -16,7 +16,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
-	"io/ioutil"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -74,8 +73,8 @@ func ParseAllocatedGPUs(data []byte) float64 {
 	re := regexp.MustCompile(`gpu:(\(null\)|[^:(]*):?([0-9]+)(\([^)]*\))?`)
 	if len(sinfo_lines) > 0 {
 		for _, line := range strings.Split(sinfo_lines, "\n") {
+			// log.info(line)
 			if len(line) > 0 && strings.Contains(line, "gpu:") {
-				log.Info(line)
 				nodes := strings.Fields(line)[0]
 				num_nodes, _ := strconv.ParseFloat(nodes, 64)
 				node_active_gpus := strings.Fields(line)[1]
@@ -106,8 +105,8 @@ func ParseIdleGPUs(data []byte) float64 {
 	re := regexp.MustCompile(`gpu:(\(null\)|[^:(]*):?([0-9]+)(\([^)]*\))?`)
 	if len(sinfo_lines) > 0 {
 		for _, line := range strings.Split(sinfo_lines, "\n") {
+			// log.info(line)
 			if len(line) > 0 && strings.Contains(line, "gpu:") {
-				log.Info(line)
 				nodes := strings.Fields(line)[0]
 				num_nodes, _ := strconv.ParseFloat(nodes, 64)
 				node_gpus := strings.Fields(line)[1]
@@ -147,8 +146,8 @@ func ParseTotalGPUs(data []byte) float64 {
 	re := regexp.MustCompile(`gpu:(\(null\)|[^:(]*):?([0-9]+)(\([^)]*\))?`)
 	if len(sinfo_lines) > 0 {
 		for _, line := range strings.Split(sinfo_lines, "\n") {
+			// log.Info(line)
 			if len(line) > 0 && strings.Contains(line, "gpu:") {
-				log.Info(line)
 				nodes := strings.Fields(line)[0]
 				num_nodes, _ := strconv.ParseFloat(nodes, 64)
 				node_gpus := strings.Fields(line)[1]
@@ -183,32 +182,25 @@ func ParseGPUsMetrics() *GPUsMetrics {
 }
 
 func AllocatedGPUsData() []byte {
-	args := []string{"-a", "-h", "--Format='Nodes: ,GresUsed:'", "--state=allocated"}
+	args := []string{"-a", "-h", "--Format=Nodes: ,GresUsed:", "--state=allocated"}
 	return Execute("sinfo", args)
 }
 
 func IdleGPUsData() []byte {
-	args := []string{"-a", "-h", "--Format='Nodes: ,Gres: ,GresUsed:'", "--state=idle,allocated"}
+	args := []string{"-a", "-h", "--Format=Nodes: ,Gres: ,GresUsed:", "--state=idle,allocated"}
 	return Execute("sinfo", args)
 }
 
 func TotalGPUsData() []byte {
-	args := []string{"-a", "-h", "--Format='Nodes: ,Gres:'"}
+	args := []string{"-a", "-h", "--Format=Nodes: ,Gres:"}
 	return Execute("sinfo", args)
 }
 
 // Execute the sinfo command and return its output
 func Execute(command string, arguments []string) []byte {
 	cmd := exec.Command(command, arguments...)
-	stdout, err := cmd.StdoutPipe()
+	out, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatal(err)
-	}
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
-	}
-	out, _ := ioutil.ReadAll(stdout)
-	if err := cmd.Wait(); err != nil {
 		log.Fatal(err)
 	}
 	return out
