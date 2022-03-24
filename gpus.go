@@ -1,4 +1,4 @@
-/* Copyright 2020 Joeri Hermans, Victor Penso, Matteo Dessalvi
+/* Copyright 2022 Joeri Hermans, Victor Penso, Matteo Dessalvi, Iztok Lebar Bajec
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
