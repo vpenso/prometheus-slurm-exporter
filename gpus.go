@@ -64,15 +64,15 @@ func ParseAllocatedGPUs() float64 {
 
 func ParseAllocatedGPUs() float64 {
 	var num_gpus = 0.0
-	// sinfo -a -h --Format=Nodes,GresUsed:512 --state=allocated
-	// 3                   gpu:2
-	// 1                   gpu:(null):3(IDX:0-7)
-	// 13                  gpu:A30:4(IDX:0-3),gpu:Q6K:4(IDX:0-3)
+	// sinfo -a -h --Format="Nodes: ,GresUsed:" --state=allocated
+	// 3 gpu:2                                       # slurm>=20.11.8
+	// 1 gpu:(null):3(IDX:0-7)                       # slurm 21.08.5
+	// 13 gpu:A30:4(IDX:0-3),gpu:Q6K:4(IDX:0-3)      # slurm 21.08.5
 
 
-	args := []string{"-a", "-h", "--Format=Nodes,GresUsed:512", "--state=allocated"}
+	args := []string{"-a", "-h", "--Format='Nodes: ,GresUsed:'", "--state=allocated"}
 	output := string(Execute("sinfo", args))
-	re := regexp.MustCompile("gpu:([^:(]*):?([0-9]+)(\\([^)]*\\))?")
+	re := regexp.MustCompile("gpu:((\\(null\\)|[^:(]*):?([0-9]+)(\\([^)]*\\))?")
 	if len(output) > 0 {
 		for _, line := range strings.Split(output, "\n") {
 			if len(line) > 0 && strings.Contains(line, "gpu:") {
@@ -97,15 +97,15 @@ func ParseAllocatedGPUs() float64 {
 
 func ParseIdleGPUs() float64 {
 	var num_gpus = 0.0
-	// sinfo -a -h --Format=Nodes,Gres:512,GresUsed:512 --state=idle,allocated
-	// 3                   gpu:4                                       gpu:2
-	// 1                   gpu:8(S:0-1)                                gpu:(null):3(IDX:0-7)
-	// 13                  gpu:A30:4(S:0-1),gpu:Q6K:40(S:0-1)          gpu:A30:4(IDX:0-3),gpu:Q6K:4(IDX:0-3)
+	// sinfo -a -h --Format="Nodes: ,Gres: ,GresUsed:" --state=idle,allocated
+	// 3 gpu:4 gpu:2                                       																# slurm 20.11.8
+	// 1 gpu:8(S:0-1) gpu:(null):3(IDX:0-7)                       												# slurm 21.08.5
+	// 13 gpu:A30:4(S:0-1),gpu:Q6K:40(S:0-1) gpu:A30:4(IDX:0-3),gpu:Q6K:4(IDX:0-3)       	# slurm 21.08.5
 
 
-	args := []string{"-a", "-h", "--Format=Nodes,Gres:512,GresUsed:512", "--state=idle,allocated"}
+	args := []string{"-a", "-h", "--Format='Nodes: ,Gres: ,GresUsed:'", "--state=idle,allocated"}
 	output := string(Execute("sinfo", args))
-	re := regexp.MustCompile("gpu:([^:(]*):?([0-9]+)(\\([^)]*\\))?")
+	re := regexp.MustCompile("gpu:((\\(null\\)|[^:(]*):?([0-9]+)(\\([^)]*\\))?")
 	if len(output) > 0 {
 		for _, line := range strings.Split(output, "\n") {
 			if len(line) > 0 && strings.Contains(line, "gpu:") {
@@ -139,14 +139,14 @@ func ParseIdleGPUs() float64 {
 
 func ParseTotalGPUs() float64 {
 	var num_gpus = 0.0
-	// sinfo -a -h --Format=Nodes,Gres:512
-	// 3                   gpu:4
-	// 1                   gpu:8(S:0-1)
-	// 13                  gpu:A30:4(S:0-1),gpu:Q6K:40(S:0-1)
+	// sinfo -a -h --Format="Nodes: ,Gres:"
+	// 3 gpu:4                                       	# slurm 20.11.8
+	// 1 gpu:8(S:0-1)                                	# slurm 21.08.5
+	// 13 gpu:A30:4(S:0-1),gpu:Q6K:40(S:0-1)        	# slurm 21.08.5
 
-	args := []string{"-a", "-h", "--Format=Nodes,Gres:512"}
+	args := []string{"-a", "-h", "--Format='Nodes: ,Gres:'"}
 	output := string(Execute("sinfo", args))
-	re := regexp.MustCompile("gpu:([^:(]*):?([0-9]+)(\\([^)]*\\))?")
+	re := regexp.MustCompile("gpu:((\\(null\\)|[^:(]*):?([0-9]+)(\\([^)]*\\))?")
 	if len(output) > 0 {
 		for _, line := range strings.Split(output, "\n") {
 			if len(line) > 0 && strings.Contains(line, "gpu:") {
