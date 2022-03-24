@@ -27,12 +27,12 @@ import (
 
 // NodeMetrics stores metrics for each node
 type NodeMetrics struct {
-	memAlloc uint64
-	memTotal uint64
-	cpuAlloc uint64
-	cpuIdle  uint64
-	cpuOther uint64
-	cpuTotal uint64
+	memAlloc   uint64
+	memTotal   uint64
+	cpuAlloc   uint64
+	cpuIdle    uint64
+	cpuOther   uint64
+	cpuTotal   uint64
 	nodeStatus string
 }
 
@@ -60,7 +60,6 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 		memAlloc, _ := strconv.ParseUint(node[1], 10, 64)
 		memTotal, _ := strconv.ParseUint(node[2], 10, 64)
 
-
 		cpuInfo := strings.Split(node[3], "/")
 		cpuAlloc, _ := strconv.ParseUint(cpuInfo[0], 10, 64)
 		cpuIdle, _ := strconv.ParseUint(cpuInfo[1], 10, 64)
@@ -82,7 +81,7 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 // NodeData executes the sinfo command to get data for each node
 // It returns the output of the sinfo command
 func NodeData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-N", "-O", "NodeList,AllocMem,Memory,CPUsState,StateLong")
+	cmd := exec.Command("sinfo", "-h", "-N", "-O", "NodeList: ,AllocMem: ,Memory: ,CPUsState: ,StateLong:")
 	out, err := cmd.Output()
 	if err != nil {
 		log.Fatal(err)
@@ -102,7 +101,7 @@ type NodeCollector struct {
 // NewNodeCollector creates a Prometheus collector to keep all our stats in
 // It returns a set of collections for consumption
 func NewNodeCollector() *NodeCollector {
-	labels := []string{"node","status"}
+	labels := []string{"node", "status"}
 
 	return &NodeCollector{
 		cpuAlloc: prometheus.NewDesc("slurm_node_cpu_alloc", "Allocated CPUs per node", labels, nil),
@@ -128,7 +127,7 @@ func (nc *NodeCollector) Collect(ch chan<- prometheus.Metric) {
 	nodes := NodeGetMetrics()
 	for node := range nodes {
 		ch <- prometheus.MustNewConstMetric(nc.cpuAlloc, prometheus.GaugeValue, float64(nodes[node].cpuAlloc), node, nodes[node].nodeStatus)
-		ch <- prometheus.MustNewConstMetric(nc.cpuIdle,  prometheus.GaugeValue, float64(nodes[node].cpuIdle),  node, nodes[node].nodeStatus)
+		ch <- prometheus.MustNewConstMetric(nc.cpuIdle, prometheus.GaugeValue, float64(nodes[node].cpuIdle), node, nodes[node].nodeStatus)
 		ch <- prometheus.MustNewConstMetric(nc.cpuOther, prometheus.GaugeValue, float64(nodes[node].cpuOther), node, nodes[node].nodeStatus)
 		ch <- prometheus.MustNewConstMetric(nc.cpuTotal, prometheus.GaugeValue, float64(nodes[node].cpuTotal), node, nodes[node].nodeStatus)
 		ch <- prometheus.MustNewConstMetric(nc.memAlloc, prometheus.GaugeValue, float64(nodes[node].memAlloc), node, nodes[node].nodeStatus)
