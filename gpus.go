@@ -63,19 +63,19 @@ func ParseAllocatedGPUs() float64 {
 }
 */
 
-func ParseAllocatedGPUs() float64 {
+func ParseAllocatedGPUs(data []byte) float64 {
 	var num_gpus = 0.0
 	// sinfo -a -h --Format="Nodes: ,GresUsed:" --state=allocated
 	// 3 gpu:2                                       # slurm>=20.11.8
 	// 1 gpu:(null):3(IDX:0-7)                       # slurm 21.08.5
 	// 13 gpu:A30:4(IDX:0-3),gpu:Q6K:4(IDX:0-3)      # slurm 21.08.5
 
-	args := []string{"-a", "-h", "--Format='Nodes: ,GresUsed:'", "--state=allocated"}
-	output := string(Execute("sinfo", args))
+	sinfo_lines := string(data)
 	re := regexp.MustCompile(`gpu:(\(null\)|[^:(]*):?([0-9]+)(\([^)]*\))?`)
-	if len(output) > 0 {
-		for _, line := range strings.Split(output, "\n") {
+	if len(sinfo_lines) > 0 {
+		for _, line := range strings.Split(sinfo_lines, "\n") {
 			if len(line) > 0 && strings.Contains(line, "gpu:") {
+				log.Info(line)
 				nodes := strings.Fields(line)[0]
 				num_nodes, _ := strconv.ParseFloat(nodes, 64)
 				node_active_gpus := strings.Fields(line)[1]
@@ -95,19 +95,19 @@ func ParseAllocatedGPUs() float64 {
 	return num_gpus
 }
 
-func ParseIdleGPUs() float64 {
+func ParseIdleGPUs(data []byte) float64 {
 	var num_gpus = 0.0
 	// sinfo -a -h --Format="Nodes: ,Gres: ,GresUsed:" --state=idle,allocated
 	// 3 gpu:4 gpu:2                                       																# slurm 20.11.8
 	// 1 gpu:8(S:0-1) gpu:(null):3(IDX:0-7)                       												# slurm 21.08.5
 	// 13 gpu:A30:4(S:0-1),gpu:Q6K:40(S:0-1) gpu:A30:4(IDX:0-3),gpu:Q6K:4(IDX:0-3)       	# slurm 21.08.5
 
-	args := []string{"-a", "-h", "--Format='Nodes: ,Gres: ,GresUsed:'", "--state=idle,allocated"}
-	output := string(Execute("sinfo", args))
+	sinfo_lines := string(data)
 	re := regexp.MustCompile(`gpu:(\(null\)|[^:(]*):?([0-9]+)(\([^)]*\))?`)
-	if len(output) > 0 {
-		for _, line := range strings.Split(output, "\n") {
+	if len(sinfo_lines) > 0 {
+		for _, line := range strings.Split(sinfo_lines, "\n") {
 			if len(line) > 0 && strings.Contains(line, "gpu:") {
+				log.Info(line)
 				nodes := strings.Fields(line)[0]
 				num_nodes, _ := strconv.ParseFloat(nodes, 64)
 				node_gpus := strings.Fields(line)[1]
@@ -136,19 +136,19 @@ func ParseIdleGPUs() float64 {
 	return num_gpus
 }
 
-func ParseTotalGPUs() float64 {
+func ParseTotalGPUs(data []byte) float64 {
 	var num_gpus = 0.0
 	// sinfo -a -h --Format="Nodes: ,Gres:"
 	// 3 gpu:4                                       	# slurm 20.11.8
 	// 1 gpu:8(S:0-1)                                	# slurm 21.08.5
 	// 13 gpu:A30:4(S:0-1),gpu:Q6K:40(S:0-1)        	# slurm 21.08.5
 
-	args := []string{"-a", "-h", "--Format='Nodes: ,Gres:'"}
-	output := string(Execute("sinfo", args))
+	sinfo_lines := string(data)
 	re := regexp.MustCompile(`gpu:(\(null\)|[^:(]*):?([0-9]+)(\([^)]*\))?`)
-	if len(output) > 0 {
-		for _, line := range strings.Split(output, "\n") {
+	if len(sinfo_lines) > 0 {
+		for _, line := range strings.Split(sinfo_lines, "\n") {
 			if len(line) > 0 && strings.Contains(line, "gpu:") {
+				log.Info(line)
 				nodes := strings.Fields(line)[0]
 				num_nodes, _ := strconv.ParseFloat(nodes, 64)
 				node_gpus := strings.Fields(line)[1]
@@ -170,9 +170,9 @@ func ParseTotalGPUs() float64 {
 
 func ParseGPUsMetrics() *GPUsMetrics {
 	var gm GPUsMetrics
-	total_gpus := ParseTotalGPUs()
-	allocated_gpus := ParseAllocatedGPUs()
-	idle_gpus := ParseIdleGPUs()
+	total_gpus := ParseTotalGPUs(TotalGPUsData())
+	allocated_gpus := ParseAllocatedGPUs(AllocatedGPUsData())
+	idle_gpus := ParseIdleGPUs(IdleGPUsData())
 	other_gpus := total_gpus - allocated_gpus - idle_gpus
 	gm.alloc = allocated_gpus
 	gm.idle = idle_gpus
@@ -180,6 +180,21 @@ func ParseGPUsMetrics() *GPUsMetrics {
 	gm.total = total_gpus
 	gm.utilization = allocated_gpus / total_gpus
 	return &gm
+}
+
+func AllocatedGPUsData() []byte {
+	args := []string{"-a", "-h", "--Format='Nodes: ,GresUsed:'", "--state=allocated"}
+	return Execute("sinfo", args)
+}
+
+func IdleGPUsData() []byte {
+	args := []string{"-a", "-h", "--Format='Nodes: ,Gres: ,GresUsed:'", "--state=idle,allocated"}
+	return Execute("sinfo", args)
+}
+
+func TotalGPUsData() []byte {
+	args := []string{"-a", "-h", "--Format='Nodes: ,Gres:'"}
+	return Execute("sinfo", args)
 }
 
 // Execute the sinfo command and return its output
