@@ -1,0 +1,5 @@
+gpu:4
+gpu:7
+gpu:1
+gpu:1
+gpu:1
