@@ -31,7 +31,7 @@ cp lib/systemd/prometheus-slurm-exporter.service ~/rpmbuild/SOURCES
 6. Copy the SPEC file in the proper directory:
 ```bash
 cd prometheus-slurm-exporter
-cp packaging/rpm/*.spec ~/rpmbuild/SPECS
+cp packages/rpm/*.spec ~/rpmbuild/SPECS
 ```
 
 ### Build the RPM package
