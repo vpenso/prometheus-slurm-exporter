@@ -39,6 +39,7 @@ cp packages/rpm/*.spec ~/rpmbuild/SPECS
 8. Build the RPM based on your SPEC file:
 ```bash
 cd $HOME/rpmbuild/SPECS
+spectool -g -R prometheus-slurm-exporter.spec
 rpmbuild -ba prometheus-slurm-exporter.spec
 ```
 9. The RPM package will be placed under $HOME/rpmbuild/RPMS/x86_64

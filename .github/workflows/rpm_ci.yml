@@ -1,0 +1,60 @@
+name: Prometheus Slurm Exporter
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  centos8:
+    runs-on: ubuntu-latest
+    container:
+      image: centos:centos8
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Prerequisites
+        run: dnf install -y rpm-build rpmdevtools redhat-rpm-config make git go
+      - name: Configure Go Libraries
+        run: |
+          export GOPATH=$(pwd)
+          /bin/bash .github/workflows/go_config.sh
+      - name: Compile Exporter
+        run: make build
+      - name: Prepare RPM Environment
+        run: /bin/bash .github/workflows/prep_rpm.sh
+      - name: Build RPM
+        run: /bin/bash .github/workflows/build_rpm.sh
+      - name: Upload RPM
+        uses: actions/upload-artifact@v2
+        with:
+          name: prometheus-slurm-exporter-centos8-x86_64-latest
+          path: /github/home/rpmbuild/RPMS/x86_64/*.rpm
+  centos7:
+    runs-on: ubuntu-latest
+    container:
+      image: centos:centos7
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Prerequisites
+        run: |
+          yum install -y epel-release
+          yum update -y
+          yum install -y rpm-build rpmdevtools redhat-rpm-config make git golang
+      - name: Configure Go Libraries
+        run: |
+          export GOPATH=$(pwd)
+          /bin/bash .github/workflows/go_config.sh
+      - name: Compile Exporter
+        run: make build
+      - name: Prepare RPM Environment
+        run: /bin/bash .github/workflows/prep_rpm.sh
+      - name: Build RPM
+        run: /bin/bash .github/workflows/build_rpm.sh
+      - name: Upload RPM
+        uses: actions/upload-artifact@v2
+        with:
+          name: prometheus-slurm-exporter-centos7-x86_64-latest
+          path: /github/home/rpmbuild/RPMS/x86_64/*.rpm
