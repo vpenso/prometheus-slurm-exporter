@@ -1,0 +1,13 @@
+gpu:1
+gpu:1
+gpu:1
+gpu:1
+gpu:1
+gpu:1
+gpu:1
+gpu:2
+gpu:1
+
+
+gpu:1
+gpu:1
