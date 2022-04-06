@@ -26,7 +26,7 @@ import (
 )
 
 func UsersData() []byte {
-        cmd := exec.Command("squeue","-a","-r","-h","-o %A|%u|%T|%C")
+        cmd := exec.Command("squeue","-a","-r","-h","-o %A|%u|%T|%C|%N")
         stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
@@ -46,6 +46,7 @@ type UserJobMetrics struct {
         running float64
         running_cpus float64
         suspended float64
+	hosts map[string]int
 }
 
 func ParseUsersMetrics(input []byte) map[string]*UserJobMetrics {
@@ -56,7 +57,7 @@ func ParseUsersMetrics(input []byte) map[string]*UserJobMetrics {
                         user := strings.Split(line,"|")[1]
                         _,key := users[user]
                         if !key {
-                                users[user] = &UserJobMetrics{0,0,0,0}
+                                users[user] = &UserJobMetrics{0,0,0,0,map[string]int{}}
                         }
                         state := strings.Split(line,"|")[2]
                         state = strings.ToLower(state)
@@ -64,12 +65,16 @@ func ParseUsersMetrics(input []byte) map[string]*UserJobMetrics {
                         pending := regexp.MustCompile(`^pending`)
                         running := regexp.MustCompile(`^running`)
                         suspended := regexp.MustCompile(`^suspended`)
+                        hosts := strings.Split(strings.Split(line,"|")[4], ",")
                         switch {
                         case pending.MatchString(state) == true:
                                 users[user].pending++
                         case running.MatchString(state) == true:
                                 users[user].running++
                                 users[user].running_cpus += cpus
+				for _, host := range hosts {
+					users[user].hosts[host] += 1
+				}
                         case suspended.MatchString(state) == true:
                                 users[user].suspended++
                         }
@@ -83,15 +88,18 @@ type UsersCollector struct {
         running *prometheus.Desc
         running_cpus *prometheus.Desc
         suspended *prometheus.Desc
+        hosts *prometheus.Desc
 }
 
 func NewUsersCollector() *UsersCollector {
         labels := []string{"user"}
+        runningLabels := []string{"user","host"}
         return &UsersCollector {
-                pending: prometheus.NewDesc("slurm_user_jobs_pending", "Pending jobs for user", labels, nil), 
+                pending: prometheus.NewDesc("slurm_user_jobs_pending", "Pending jobs for user", labels, nil),
                 running: prometheus.NewDesc("slurm_user_jobs_running", "Running jobs for user", labels, nil),
                 running_cpus: prometheus.NewDesc("slurm_user_cpus_running", "Running cpus for user", labels, nil),
                 suspended: prometheus.NewDesc("slurm_user_jobs_suspended", "Suspended jobs for user", labels, nil),
+                hosts: prometheus.NewDesc("slurm_user_jobs_running_host", "Running jobs for user on host", runningLabels, nil),
         }
 }
 
@@ -100,6 +108,7 @@ func (uc *UsersCollector) Describe(ch chan<- *prometheus.Desc) {
         ch <- uc.running
         ch <- uc.running_cpus
         ch <- uc.suspended
+        ch <- uc.hosts
 }
 
 func (uc *UsersCollector) Collect(ch chan<- prometheus.Metric) {
@@ -110,6 +119,9 @@ func (uc *UsersCollector) Collect(ch chan<- prometheus.Metric) {
                 }
                 if um[u].running > 0 {
                         ch <- prometheus.MustNewConstMetric(uc.running, prometheus.GaugeValue, um[u].running, u)
+                        for h, cnt := range um[u].hosts {
+				ch <- prometheus.MustNewConstMetric(uc.hosts, prometheus.GaugeValue, float64(cnt), u, h)
+			}
                 }
                 if um[u].running_cpus > 0 {
                         ch <- prometheus.MustNewConstMetric(uc.running_cpus, prometheus.GaugeValue, um[u].running_cpus, u)
