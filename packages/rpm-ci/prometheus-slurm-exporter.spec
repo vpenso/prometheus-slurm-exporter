@@ -63,10 +63,17 @@ exit 0
 
 %preun
 %systemd_preun %{name}.service
-userdel slurm_exporter
 
 %postun
 %systemd_postun_with_restart %{name}.service
+
+# Only remove the slurm_exporter service user
+# when we're uninstalling. 
+# Need to force because there might still be a 
+# process running.
+if [ $1 -eq 0 ]; then
+   userdel --force slurm_exporter 2> /dev/null; true
+fi
 
 %files
 %defattr(-,root,root,-)
