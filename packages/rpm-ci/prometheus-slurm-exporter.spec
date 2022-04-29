@@ -4,7 +4,7 @@
 
 Name:           prometheus-slurm-exporter
 Version:        %{_version}
-Release:        1%{?dist}
+Release:        %{_release}%{?dist}
 Summary:        Prometheus exporter for SLURM metrics
 Group:          Monitoring
 
