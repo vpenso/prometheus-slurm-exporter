@@ -24,7 +24,16 @@ jobs:
           fetch-depth: 0
 
       - name: Install Prerequisites
-        run: dnf install -y rpm-build rpmdevtools make git go
+        run: dnf install -y rpm-build rpmdevtools make git go jq curl
+
+      # Query GitHub API for assets under the specified release-tag
+      - name: Generate release number
+        id: release
+        run: |
+          RELEASE=$(curl -fSsL https://api.github.com/repos/${{ github.repository }}/releases |\
+          jq '.[] | select(.name == "${{ github.event.inputs.release-tag }}") | [.assets[].name | select(test(".*\\.rpm$"))] | length' |\
+          .github/scripts/generate_release.sh)
+          echo "::set-output name=release::$RELEASE"
 
       - name: Prepare RPMBUILD Environment
         run: |
@@ -38,8 +47,8 @@ jobs:
       - name: Build RPM
         run: |
           cd ~/rpmbuild || exit 1
-          spectool -g -R --define '_version ${{ github.event.inputs.release-tag }}' SPECS/prometheus-slurm-exporter.spec
-          rpmbuild -bb --define '_version ${{ github.event.inputs.release-tag }}' SPECS/prometheus-slurm-exporter.spec
+          spectool -g -R --define '_release ${{ steps.release.outputs.release }}' --define '_version ${{ github.event.inputs.release-tag }}' SPECS/prometheus-slurm-exporter.spec
+          rpmbuild -bb --define '_release ${{ steps.release.outputs.release }}' --define '_version ${{ github.event.inputs.release-tag }}' SPECS/prometheus-slurm-exporter.spec
 
       - name: Move RPM
         run: |
