@@ -44,6 +44,7 @@ Be aware that:
 * **Idle**: nodes not allocated to any jobs and thus available for use.
 * **Maint**: nodes which are currently marked with the __maintenance__ flag.
 * **Mixed**: nodes which have some of their CPUs ALLOCATED while others are IDLE.
+* **Planned**: nodes that are being held empty while waiting for a multi-node job to launch.
 * **Resv**: these nodes are in an advanced reservation and not generally available.
 
 - Information extracted from the SLURM [**sinfo**](https://slurm.schedmd.com/sinfo.html) command.
