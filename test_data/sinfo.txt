@@ -5,8 +5,8 @@ lxfoo0004,idle
 lxfoo0005,idle
 lxfoo0006,idle
 lxfoo0007,idle
-lxfoo0008,idle
-lxfoo0009,idle
+lxfoo0008,planned
+lxfoo0009,planned
 lxfoo0010,idle
 lxfoo0011,idle
 lxfoo0012,idle
