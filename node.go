@@ -82,7 +82,7 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 // NodeData executes the sinfo command to get data for each node
 // It returns the output of the sinfo command
 func NodeData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-N", "-O", "NodeList,AllocMem,Memory,CPUsState,StateLong")
+	cmd := exec.Command("sinfo", "-h", "-N", "-O", "NodeList:1000,AllocMem,Memory,CPUsState,StateLong")
 	out, err := cmd.Output()
 	if err != nil {
 		log.Fatal(err)
