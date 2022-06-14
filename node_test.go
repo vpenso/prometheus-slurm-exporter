@@ -54,4 +54,6 @@ func TestNodeMetrics(t *testing.T) {
 	assert.Equal(t, uint64(0), metrics["b001"].cpuIdle)
 	assert.Equal(t, uint64(0), metrics["b001"].cpuOther)
 	assert.Equal(t, uint64(32), metrics["b001"].cpuTotal)
+	assert.Equal(t, uint64(4), metrics["a050"].gpuTotal)
+	assert.Equal(t, uint64(3), metrics["a050"].gpuAlloc)
 }
