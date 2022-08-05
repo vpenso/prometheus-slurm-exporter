@@ -33,7 +33,10 @@ type NodeMetrics struct {
 	cpuIdle  uint64
 	cpuOther uint64
 	cpuTotal uint64
+  gpuAlloc uint64
+  gpuTotal uint64
 	nodeStatus string
+  gpuType string
 }
 
 func NodeGetMetrics() map[string]*NodeMetrics {
@@ -55,7 +58,8 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 		nodeName := node[0]
 		nodeStatus := node[4] // mixed, allocated, etc.
 
-		nodes[nodeName] = &NodeMetrics{0, 0, 0, 0, 0, 0, ""}
+
+		nodes[nodeName] = &NodeMetrics{0, 0, 0, 0, 0, 0, 0, 0, "", ""}
 
 		memAlloc, _ := strconv.ParseUint(node[1], 10, 64)
 		memTotal, _ := strconv.ParseUint(node[2], 10, 64)
@@ -66,6 +70,19 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 		cpuIdle, _ := strconv.ParseUint(cpuInfo[1], 10, 64)
 		cpuOther, _ := strconv.ParseUint(cpuInfo[2], 10, 64)
 		cpuTotal, _ := strconv.ParseUint(cpuInfo[3], 10, 64)
+
+    if node[5] != "(null)" {
+      // Ignore everything after opening parenthesis and split into type, name and count
+      availableTRES := strings.Split(strings.Split(node[5], "(")[0], ":")
+      usedTRES := strings.Split(strings.Split(node[6], "(")[0], ":")
+      gpuType := availableTRES[1]
+      gpuTotal, _ := strconv.ParseUint(availableTRES[2], 10, 64)
+      gpuAlloc, _ := strconv.ParseUint(usedTRES[2], 10, 64)
+
+      nodes[nodeName].gpuAlloc = gpuAlloc
+      nodes[nodeName].gpuTotal = gpuTotal
+      nodes[nodeName].gpuType = gpuType
+    }
 
 		nodes[nodeName].memAlloc = memAlloc
 		nodes[nodeName].memTotal = memTotal
@@ -82,7 +99,7 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 // NodeData executes the sinfo command to get data for each node
 // It returns the output of the sinfo command
 func NodeData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-N", "-O", "NodeList,AllocMem,Memory,CPUsState,StateLong")
+	cmd := exec.Command("sinfo", "-h", "-N", "-O", "NodeList,AllocMem,Memory,CPUsState,StateLong,Gres:50,Gresused:50")
 	out, err := cmd.Output()
 	if err != nil {
 		log.Fatal(err)
@@ -97,12 +114,15 @@ type NodeCollector struct {
 	cpuTotal *prometheus.Desc
 	memAlloc *prometheus.Desc
 	memTotal *prometheus.Desc
+	gpuAlloc *prometheus.Desc
+	gpuTotal *prometheus.Desc
 }
 
 // NewNodeCollector creates a Prometheus collector to keep all our stats in
 // It returns a set of collections for consumption
 func NewNodeCollector() *NodeCollector {
 	labels := []string{"node","status"}
+	labels_gpu := []string{"node","status","gputype"}
 
 	return &NodeCollector{
 		cpuAlloc: prometheus.NewDesc("slurm_node_cpu_alloc", "Allocated CPUs per node", labels, nil),
@@ -111,6 +131,8 @@ func NewNodeCollector() *NodeCollector {
 		cpuTotal: prometheus.NewDesc("slurm_node_cpu_total", "Total CPUs per node", labels, nil),
 		memAlloc: prometheus.NewDesc("slurm_node_mem_alloc", "Allocated memory per node", labels, nil),
 		memTotal: prometheus.NewDesc("slurm_node_mem_total", "Total memory per node", labels, nil),
+		gpuAlloc: prometheus.NewDesc("slurm_node_gpu_alloc", "Allocated GPUs per node", labels_gpu, nil),
+		gpuTotal: prometheus.NewDesc("slurm_node_gpu_total", "Total GPUs per node", labels_gpu, nil),
 	}
 }
 
@@ -122,6 +144,8 @@ func (nc *NodeCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- nc.cpuTotal
 	ch <- nc.memAlloc
 	ch <- nc.memTotal
+	ch <- nc.gpuAlloc
+	ch <- nc.gpuTotal
 }
 
 func (nc *NodeCollector) Collect(ch chan<- prometheus.Metric) {
@@ -133,5 +157,9 @@ func (nc *NodeCollector) Collect(ch chan<- prometheus.Metric) {
 		ch <- prometheus.MustNewConstMetric(nc.cpuTotal, prometheus.GaugeValue, float64(nodes[node].cpuTotal), node, nodes[node].nodeStatus)
 		ch <- prometheus.MustNewConstMetric(nc.memAlloc, prometheus.GaugeValue, float64(nodes[node].memAlloc), node, nodes[node].nodeStatus)
 		ch <- prometheus.MustNewConstMetric(nc.memTotal, prometheus.GaugeValue, float64(nodes[node].memTotal), node, nodes[node].nodeStatus)
+    if nodes[node].gpuType != "" {
+		  ch <- prometheus.MustNewConstMetric(nc.gpuAlloc, prometheus.GaugeValue, float64(nodes[node].gpuAlloc), node, nodes[node].nodeStatus, nodes[node].gpuType)
+		  ch <- prometheus.MustNewConstMetric(nc.gpuTotal, prometheus.GaugeValue, float64(nodes[node].gpuTotal), node, nodes[node].nodeStatus, nodes[node].gpuType)
+    }
 	}
 }

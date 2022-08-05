@@ -374,7 +374,7 @@ lxfoo0373,idle
 lxfoo0374,idle
 lxfoo0375,idle
 lxfoo0376,idle
-lxfoo0377,idle
+lxfoo0377,planned
 lxfoo0378,idle
 lxfoo0379,idle
 lxfoo0380,idle
@@ -390,7 +390,7 @@ lxfoo0389,idle
 lxfoo0390,idle
 lxfoo0391,idle
 lxfoo0392,idle
-lxfoo0393,idle
+lxfoo0393,planned
 lxfoo0394,idle
 lxfoo0395,idle
 lxfoo0396,idle
@@ -457,7 +457,7 @@ lxfoo0456,idle
 lxfoo0457,idle
 lxfoo0458,idle
 lxfoo0459,idle
-lxfoo0460,idle
+lxfoo0460,planned
 lxfoo0461,idle
 lxfoo0462,idle
 lxfoo0463,idle
