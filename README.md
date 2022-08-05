@@ -24,7 +24,7 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 - Information extracted from the SLURM [**sinfo**](https://slurm.schedmd.com/sinfo.html) and [**sacct**](https://slurm.schedmd.com/sacct.html) command.
 - [Slurm GRES scheduling](https://slurm.schedmd.com/gres.html)
 
-**NOTE**: since version **0.19**, GPU accounting has to be **explicitly** enabled adding the _-gpu-acct_ option to the command line otherwise it will not be activated.
+**NOTE**: since version **0.19**, GPU accounting has to be **explicitly** enabled adding the _-gpus-acct_ option to the command line otherwise it will not be activated.
 
 Be aware that:
 
@@ -61,7 +61,7 @@ See the related [test data](https://github.com/vpenso/prometheus-slurm-exporter/
 ### Status of the Jobs
 
 * **PENDING**: Jobs awaiting for resource allocation.
-* **PENDING_DEPENDENCY**: Jobs awaiting because of a unexecuted job dependency.
+* **PENDING_DEPENDENCY**: Jobs awaiting because of an unexecuted job dependency.
 * **RUNNING**: Jobs currently allocated.
 * **SUSPENDED**: Job has an allocation but execution has been suspended and CPUs have been released for other jobs.
 * **CANCELLED**: Jobs which were explicitly cancelled by the user or system administrator.
@@ -148,7 +148,7 @@ scrape_configs:
 * **scrape_interval**: a 30 seconds interval will avoid possible 'overloading' on the SLURM master due to frequent calls of sdiag/squeue/sinfo commands through the exporter.
 * **scrape_timeout**: on a busy SLURM master a too short scraping timeout will abort the communication from the Prometheus server toward the exporter, thus generating a ``context_deadline_exceeded`` error.
 
-The previous configuration file can be immediately used with a fresh installation of Promethues. At the same time, we highly recommend to include at least the ``global`` section into the configuration. Official documentation about __configuring Prometheus__ is [available here](https://prometheus.io/docs/prometheus/latest/configuration/configuration/).
+The previous configuration file can be immediately used with a fresh installation of Prometheus. At the same time, we highly recommend to include at least the ``global`` section into the configuration. Official documentation about __configuring Prometheus__ is [available here](https://prometheus.io/docs/prometheus/latest/configuration/configuration/).
 
 **NOTE**: the Prometheus server is using __YAML__ as format for its configuration file, thus **indentation** is really important. Before reloading the Prometheus server it would be better to check the syntax:
 
