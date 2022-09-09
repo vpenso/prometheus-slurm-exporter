@@ -52,28 +52,75 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 
 	for _, line := range linesUniq {
 		node := strings.Fields(line)
-		nodeName := node[0]
-		nodeStatus := node[4] // mixed, allocated, etc.
+		
+		if len(node) == 0 { 
+			continue 
+		}
 
+		nodeName := node[0]
+		
 		nodes[nodeName] = &NodeMetrics{0, 0, 0, 0, 0, 0, ""}
 
-		memAlloc, _ := strconv.ParseUint(node[1], 10, 64)
-		memTotal, _ := strconv.ParseUint(node[2], 10, 64)
+		if len(node) >= 5 {
+			nodeStatus := node[4]
+		  nodes[nodeName].nodeStatus = nodeStatus
+		} else {
+			nodeStatus := "unknown"
+			nodes[nodeName].nodeStatus = nodeStatus
+		}
 
+		if len(node) >= 3 {
+ 		  memAlloc, _ := strconv.ParseUint(node[1], 10, 64)
+		  memTotal, _ := strconv.ParseUint(node[2], 10, 64)
+			nodes[nodeName].memAlloc = memAlloc
+			nodes[nodeName].memTotal = memTotal
+		} else {
+			memAlloc := uint64(0)
+			memTotal := uint64(0)
+			nodes[nodeName].memAlloc = memAlloc
+			nodes[nodeName].memTotal = memTotal
+		}
 
-		cpuInfo := strings.Split(node[3], "/")
-		cpuAlloc, _ := strconv.ParseUint(cpuInfo[0], 10, 64)
-		cpuIdle, _ := strconv.ParseUint(cpuInfo[1], 10, 64)
-		cpuOther, _ := strconv.ParseUint(cpuInfo[2], 10, 64)
-		cpuTotal, _ := strconv.ParseUint(cpuInfo[3], 10, 64)
-
-		nodes[nodeName].memAlloc = memAlloc
-		nodes[nodeName].memTotal = memTotal
-		nodes[nodeName].cpuAlloc = cpuAlloc
-		nodes[nodeName].cpuIdle = cpuIdle
-		nodes[nodeName].cpuOther = cpuOther
-		nodes[nodeName].cpuTotal = cpuTotal
-		nodes[nodeName].nodeStatus = nodeStatus
+		if len(node) >= 4 {
+		  cpuInfo := strings.Split(node[3], "/")
+			if len(cpuInfo) >= 1 {
+		    cpuAlloc, _ := strconv.ParseUint(cpuInfo[0], 10, 64)
+			  nodes[nodeName].cpuAlloc = cpuAlloc
+		  } else {
+				cpuAlloc := uint64(0)
+			  nodes[nodeName].cpuAlloc = cpuAlloc
+			}
+			if len(cpuInfo) >= 2 {
+  		  cpuIdle, _ := strconv.ParseUint(cpuInfo[1], 10, 64)
+			  nodes[nodeName].cpuIdle = cpuIdle
+			} else {
+  		  cpuIdle := uint64(0)
+			  nodes[nodeName].cpuIdle = cpuIdle
+			}
+			if len(cpuInfo) >= 3 {
+		    cpuOther, _ := strconv.ParseUint(cpuInfo[2], 10, 64)
+	  	  nodes[nodeName].cpuOther = cpuOther
+  		} else {
+  		  cpuOther := uint64(0)
+		    nodes[nodeName].cpuOther = cpuOther
+		  }
+			if len(cpuInfo) >= 4 {
+		    cpuTotal, _ := strconv.ParseUint(cpuInfo[3], 10, 64)
+	  	  nodes[nodeName].cpuTotal = cpuTotal
+  		} else {
+  		  cpuTotal := uint64(0)
+	  	  nodes[nodeName].cpuTotal = cpuTotal
+		  }
+	  } else {
+			cpuAlloc := uint64(0)
+			cpuIdle := uint64(0)
+			cpuOther := uint64(0)
+			cpuTotal := uint64(0)
+			nodes[nodeName].cpuAlloc = cpuAlloc
+			nodes[nodeName].cpuIdle = cpuIdle
+		  nodes[nodeName].cpuOther = cpuOther
+		  nodes[nodeName].cpuTotal = cpuTotal
+	  }
 	}
 
 	return nodes
