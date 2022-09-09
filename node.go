@@ -60,9 +60,11 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 		nodeName := node[0]
 
 		if len(node) >= 5 {
-		  nodes[nodeName].nodeStatus = node[4]
+			nodeStatus := node[4]
+		  nodes[nodeName].nodeStatus = nodeStatus
 		} else {
-			nodes[nodeName].nodeStatus = "unknown"
+			nodeStatus := "unknown"
+			nodes[nodeName].nodeStatus = nodeStatus
 		}
 
 		nodes[nodeName] = &NodeMetrics{0, 0, 0, 0, 0, 0, ""}
@@ -73,8 +75,10 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 			nodes[nodeName].memAlloc = memAlloc
 			nodes[nodeName].memTotal = memTotal
 		} else {
-			nodes[nodeName].memAlloc = 0
-			nodes[nodeName].memTotal = 0
+			memAlloc := uint64(0)
+			memTotal := uint64(0)
+			nodes[nodeName].memAlloc = memAlloc
+			nodes[nodeName].memTotal = memTotal
 		}
 
 		if len(node) >= 4 {
@@ -83,15 +87,19 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 		  cpuIdle, _ := strconv.ParseUint(cpuInfo[1], 10, 64)
 		  cpuOther, _ := strconv.ParseUint(cpuInfo[2], 10, 64)
 		  cpuTotal, _ := strconv.ParseUint(cpuInfo[3], 10, 64)
-		  nodes[nodeName].cpuAlloc = cpuAlloc
-		  nodes[nodeName].cpuIdle = cpuIdle
+			nodes[nodeName].cpuAlloc = cpuAlloc
+			nodes[nodeName].cpuIdle = cpuIdle
 		  nodes[nodeName].cpuOther = cpuOther
 		  nodes[nodeName].cpuTotal = cpuTotal
 	  } else {
-		  nodes[nodeName].cpuAlloc = 0
-	  	nodes[nodeName].cpuIdle = 0
-  		nodes[nodeName].cpuOther = 0
-		  nodes[nodeName].cpuTotal = 0
+			cpuAlloc := uint64(0)
+			cpuIdle := uint64(0)
+			cpuOther := uint64(0)
+			cpuTotal := uint64(0)
+			nodes[nodeName].cpuAlloc = cpuAlloc
+			nodes[nodeName].cpuIdle = cpuIdle
+		  nodes[nodeName].cpuOther = cpuOther
+		  nodes[nodeName].cpuTotal = cpuTotal
 	  }
 	}
 
