@@ -58,6 +58,8 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 		}
 
 		nodeName := node[0]
+		
+		nodes[nodeName] = &NodeMetrics{0, 0, 0, 0, 0, 0, ""}
 
 		if len(node) >= 5 {
 			nodeStatus := node[4]
@@ -66,8 +68,6 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 			nodeStatus := "unknown"
 			nodes[nodeName].nodeStatus = nodeStatus
 		}
-
-		nodes[nodeName] = &NodeMetrics{0, 0, 0, 0, 0, 0, ""}
 
 		if len(node) >= 3 {
  		  memAlloc, _ := strconv.ParseUint(node[1], 10, 64)
