@@ -83,14 +83,34 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 
 		if len(node) >= 4 {
 		  cpuInfo := strings.Split(node[3], "/")
-		  cpuAlloc, _ := strconv.ParseUint(cpuInfo[0], 10, 64)
-		  cpuIdle, _ := strconv.ParseUint(cpuInfo[1], 10, 64)
-		  cpuOther, _ := strconv.ParseUint(cpuInfo[2], 10, 64)
-		  cpuTotal, _ := strconv.ParseUint(cpuInfo[3], 10, 64)
-			nodes[nodeName].cpuAlloc = cpuAlloc
-			nodes[nodeName].cpuIdle = cpuIdle
-		  nodes[nodeName].cpuOther = cpuOther
-		  nodes[nodeName].cpuTotal = cpuTotal
+			if len(cpuInfo) >= 1 {
+		    cpuAlloc, _ := strconv.ParseUint(cpuInfo[0], 10, 64)
+			  nodes[nodeName].cpuAlloc = cpuAlloc
+		  } else {
+				cpuAlloc := uint64(0)
+			  nodes[nodeName].cpuAlloc = cpuAlloc
+			}
+			if len(cpuInfo) >= 2 {
+  		  cpuIdle, _ := strconv.ParseUint(cpuInfo[1], 10, 64)
+			  nodes[nodeName].cpuIdle = cpuIdle
+			} else {
+  		  cpuIdle := uint64(0)
+			  nodes[nodeName].cpuIdle = cpuIdle
+			}
+			if len(cpuInfo) >= 3 {
+		    cpuOther, _ := strconv.ParseUint(cpuInfo[2], 10, 64)
+	  	  nodes[nodeName].cpuOther = cpuOther
+  		} else {
+  		  cpuOther := uint64(0)
+		    nodes[nodeName].cpuOther = cpuOther
+		  }
+			if len(cpuInfo) >= 4 {
+		    cpuTotal, _ := strconv.ParseUint(cpuInfo[3], 10, 64)
+	  	  nodes[nodeName].cpuTotal = cpuTotal
+  		} else {
+  		  cpuTotal := uint64(0)
+	  	  nodes[nodeName].cpuTotal = cpuTotal
+		  }
 	  } else {
 			cpuAlloc := uint64(0)
 			cpuIdle := uint64(0)
