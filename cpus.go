@@ -49,7 +49,7 @@ func ParseCPUsMetrics(input []byte) *CPUsMetrics {
 
 // Execute the sinfo command and return its output
 func CPUsData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-o %C")
+	cmd := exec.Command("sinfo", "-h", "-a", "-o %C")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
