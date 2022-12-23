@@ -112,7 +112,7 @@ func ParseNodesMetrics(input []byte) *NodesMetrics {
 
 // Execute the sinfo command and return its output
 func NodesData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-o %D,%T")
+	cmd := exec.Command("sinfo", "-h", "-a", "-o %D,%T")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
