@@ -5,6 +5,7 @@ GOPATH := $(SRCDIR)/go/modules
 GOBIN := bin/$(PROJECT_NAME)
 GOFILES := $(wildcard $(SRCIR)/*.go)
 GOFLAGS = -v
+GOTESTFLAGS =
 
 all: $(GOBIN)
 
