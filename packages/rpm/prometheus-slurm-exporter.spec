@@ -1,17 +1,20 @@
-%define        __spec_install_post %{nil}
-%define          debug_package %{nil}
-%define        __os_install_post %{_dbpath}/brp-compress
+%define debug_package %{nil}
+%global shortname prometheus-slurm-exporter
+%global goipath  github.com/vpenso/prometheus-slurm-exporter
+Version:        0.20
+%gometa
+%global golicenses      LICENSE
+%global godocs          README.md
 
-Name:           prometheus-slurm-exporter
-Version:        0.3
-Release:        1%{?dist}
+Name:           %{goname}
+Release:        %autorelease
 Summary:        Prometheus exporter for SLURM metrics
 Group:          Monitoring
 
 License:        GPL 3.0
-URL:            https://github.com/vpenso/prometheus-slurm-exporter
+URL:            %{gourl}
 
-Source0:        https://github.com/vpenso/prometheus-slurm-exporter/releases/download/%{version}/slurm_exporter-%{version}.linux-amd64.tar.gz
+Source0:        %{gosource}
 Source1:        prometheus-slurm-exporter.service
 Source2:        LICENSE
 Source3:        README.md
@@ -22,34 +25,29 @@ Requires(post): systemd
 Requires(preun): systemd
 Requires(postun): systemd
 %{?systemd_requires}
-BuildRequires:  systemd
-
-BuildRoot:      %{_tmppath}/%{name}-%{version}-1-root
+BuildRequires:  systemd-rpm-macros
+BuildRequires:  golang(github.com/prometheus/client_golang/prometheus)
+BuildRequires:  golang-github-prometheus-common-devel
 
 %description
 A Prometheus exporter for metrics extracted from the Slurm resource scheduling system.
 
 %prep
-%setup -q
+%goprep
+%autosetup -N -T -D -a 0 -n %{shortname}-%{version}
 
 %build
-# Empty section.
+make all GOFLAGS=%{gobuildflags}
+
 
 %install
-rm -rf %{buildroot}
-mkdir -vp %{buildroot}
-mkdir -vp %{buildroot}%{_unitdir}/
-mkdir -vp %{buildroot}/usr/bin
-mkdir -vp %{buildroot}/usr/share/doc/prometheus-slurm-exporter-%{version}
-mkdir -vp %{buildroot}/var/lib/prometheus
-install -m 755 prometheus-slurm-exporter %{buildroot}/usr/bin/prometheus-slurm-exporter
-install -m 644 %{SOURCE1} %{buildroot}/usr/lib/systemd/system/prometheus-slurm-exporter.service
-install -m 644 %{SOURCE2} %{buildroot}/usr/share/doc/prometheus-slurm-exporter-%{version}/LICENSE
-install -m 644 %{SOURCE3} %{buildroot}/usr/share/doc/prometheus-slurm-exporter-%{version}/README.md
+install -m 0755 -vd %{buildroot}%{_bindir}
+install -m 0755 bin/%{shortname} %{buildroot}%{_bindir}
 
-%clean
-rm -rf %{buildroot}
- 
+install -m 0755 -vd %{buildroot}%{_unitdir}/
+install -m 0755 -vd  %{buildroot}/%{_sharedstatedir}/prometheus
+install -m 644 %{SOURCE1} %{buildroot}/%{_unitdir}/%{shortname}.service
+
 %pre
 getent group prometheus >/dev/null || groupadd -r prometheus
 getent passwd prometheus >/dev/null || \
@@ -58,27 +56,21 @@ getent passwd prometheus >/dev/null || \
 exit 0
 
 %post
-systemctl enable %{name}.service
-systemctl start %{name}.service
+systemctl enable --now %{shortname}.service
+%systemd_post %{shortname}.service
 
 %preun
-%systemd_preun %{name}.service
+%systemd_preun %{shortname}.service
 
 %postun
-%systemd_postun_with_restart %{name}.service
+%systemd_postun_with_restart %{shortname}.service
 
 %files
-%defattr(-,root,root,-)
-%doc LICENSE
+%license LICENSE
 %doc README.md
-%{_bindir}/prometheus-slurm-exporter
-%{_unitdir}/%{name}.service
-%attr(755, prometheus, prometheus)/var/lib/prometheus
+%{_bindir}/%{shortname}
+%{_unitdir}/%{shortname}.service
+%attr(755, prometheus, prometheus)/%{_sharedstatedir}/prometheus
 
 %changelog
-* Fri Feb 16 2018 Matteo <m.dessalvi@gsi.de> - 0.3
-- Fix issue #4
-* Wed Jan 31 2018 Matteo <m.dessalvi@gsi.de> - 0.2
-- Fix issue #3
-* Mon Dec 04 2017 Matteo <m.dessalvi@gsi.de> - 0.1
-- Full commit history: https://github.com/vpenso/prometheus-slurm-exporter/commits/master
+%autochangelog

@@ -1,17 +1,23 @@
 PROJECT_NAME = prometheus-slurm-exporter
-SHELL := $(shell which bash) -eu -o pipefail
-
-GOPATH := $(shell pwd)/go/modules
+ROOTDIR := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
+SRCDIR := $(ROOTDIR)
+GOPATH := $(SRCDIR)/go/modules
 GOBIN := bin/$(PROJECT_NAME)
-GOFILES := $(shell ls *.go)
+GOFILES := $(wildcard $(SRCIR)/*.go)
+GOFLAGS = -v
+GOTESTFLAGS =
+
+all: $(GOBIN)
+
+download: go/modules/pkg/mod
 
 .PHONY: build
-build: test $(GOBIN)
+build: $(GOBIN)
 
-$(GOBIN): go/modules/pkg/mod $(GOFILES)
+$(GOBIN): $(GOFILES)
 	mkdir -p bin
 	@echo "Building $(GOBIN)"
-	go build -v -o $(GOBIN)
+	go build $(GOFLAGS) -o $(GOBIN)
 
 go/modules/pkg/mod: go.mod
 	go mod download
@@ -23,6 +29,7 @@ test: go/modules/pkg/mod $(GOFILES)
 run: $(GOBIN)
 	$(GOBIN)
 
+.PHONY: clean
 clean:
 	go clean -modcache
 	rm -fr bin/ go/
