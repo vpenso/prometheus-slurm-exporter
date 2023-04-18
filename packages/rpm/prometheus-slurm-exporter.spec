@@ -37,7 +37,7 @@ A Prometheus exporter for metrics extracted from the Slurm resource scheduling s
 %autosetup -N -T -D -a 0 -n %{shortname}-%{version}
 
 %build
-%gobuild -o bin/%{shortname}
+make all GOFLAGS=%{gobuildflags}
 
 
 %install
