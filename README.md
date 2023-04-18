@@ -2,6 +2,23 @@
 
 Prometheus collector and exporter for metrics extracted from the [Slurm](https://slurm.schedmd.com/overview.html) resource scheduling system.
 
+## Build from source
+
+
+with dependencies downloaded:
+- github.com/prometheus/client_golang
+- github.com/prometheus/common
+- github.com/stretchr/testify
+```bash
+make download
+make all
+```
+
+with dependencies already installed:
+```bash
+make all
+```
+
 ## Exported Metrics
 
 ### State of the CPUs
