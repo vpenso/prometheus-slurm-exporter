@@ -11,17 +11,18 @@ jobs:
   build-rocky-rpms:
     runs-on: ubuntu-latest
     container:
-      image: rockylinux:8.5
+      image: rockylinux:8.8
 
     # Required to upload the built RPM to the release
     permissions:
       contents: write
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+     - name: Checkout repo
+       uses: actions/checkout@v3
+       with:
+         ref: "${{ github.event.inputs.release-tag }}"
+         fetch-depth: 0
 
       - name: Install Prerequisites
         run: dnf install -y rpm-build rpmdevtools make git go jq curl
