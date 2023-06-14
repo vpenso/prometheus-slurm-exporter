@@ -16,7 +16,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
 	"io/ioutil"
 	"log"
 	"os/exec"
@@ -24,19 +23,22 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type NodesMetrics struct {
-	alloc float64
-	comp  float64
-	down  float64
-	drain float64
-	err   float64
-	fail  float64
-	idle  float64
-	maint float64
-	mix   float64
-	resv  float64
+	alloc   float64
+	comp    float64
+	down    float64
+	drain   float64
+	err     float64
+	fail    float64
+	idle    float64
+	maint   float64
+	mix     float64
+	resv    float64
+	planned float64
 }
 
 func NodesGetMetrics() *NodesMetrics {
@@ -66,45 +68,50 @@ func ParseNodesMetrics(input []byte) *NodesMetrics {
 
 	// Sort and remove all the duplicates from the 'sinfo' output
 	sort.Strings(lines)
-	lines_uniq := RemoveDuplicates(lines)
+	uniq := RemoveDuplicates(lines)
 
-	for _, line := range lines_uniq {
-		if strings.Contains(line, ",") {
-			split := strings.Split(line, ",")
-			count, _ := strconv.ParseFloat(strings.TrimSpace(split[0]), 64)
-			state := split[1]
-			alloc := regexp.MustCompile(`^alloc`)
-			comp := regexp.MustCompile(`^comp`)
-			down := regexp.MustCompile(`^down`)
-			drain := regexp.MustCompile(`^drain`)
-			fail := regexp.MustCompile(`^fail`)
-			err := regexp.MustCompile(`^err`)
-			idle := regexp.MustCompile(`^idle`)
-			maint := regexp.MustCompile(`^maint`)
-			mix := regexp.MustCompile(`^mix`)
-			resv := regexp.MustCompile(`^res`)
-			switch {
-			case alloc.MatchString(state) == true:
-				nm.alloc += count
-			case comp.MatchString(state) == true:
-				nm.comp += count
-			case down.MatchString(state) == true:
-				nm.down += count
-			case drain.MatchString(state) == true:
-				nm.drain += count
-			case fail.MatchString(state) == true:
-				nm.fail += count
-			case err.MatchString(state) == true:
-				nm.err += count
-			case idle.MatchString(state) == true:
-				nm.idle += count
-			case maint.MatchString(state) == true:
-				nm.maint += count
-			case mix.MatchString(state) == true:
-				nm.mix += count
-			case resv.MatchString(state) == true:
-				nm.resv += count
-			}
+	alloc := regexp.MustCompile(`^alloc`)
+	comp := regexp.MustCompile(`^comp`)
+	down := regexp.MustCompile(`^down`)
+	drain := regexp.MustCompile(`^drain`)
+	fail := regexp.MustCompile(`^fail`)
+	err := regexp.MustCompile(`^err`)
+	idle := regexp.MustCompile(`^idle`)
+	maint := regexp.MustCompile(`^maint`)
+	mix := regexp.MustCompile(`^mix`)
+	resv := regexp.MustCompile(`^res`)
+	planned := regexp.MustCompile(`^planned`)
+
+	for _, line := range uniq {
+		if !strings.Contains(line, ",") {
+			continue
+		}
+		split := strings.Split(line, ",")
+		count, _ := strconv.ParseFloat(strings.TrimSpace(split[0]), 64)
+		state := split[1]
+		switch {
+		case alloc.MatchString(state):
+			nm.alloc += count
+		case comp.MatchString(state):
+			nm.comp += count
+		case down.MatchString(state):
+			nm.down += count
+		case drain.MatchString(state):
+			nm.drain += count
+		case fail.MatchString(state):
+			nm.fail += count
+		case err.MatchString(state):
+			nm.err += count
+		case idle.MatchString(state):
+			nm.idle += count
+		case maint.MatchString(state):
+			nm.maint += count
+		case mix.MatchString(state):
+			nm.mix += count
+		case resv.MatchString(state):
+			nm.resv += count
+		case planned.MatchString(state):
+			nm.planned += count
 		}
 	}
 	return &nm
@@ -135,30 +142,32 @@ func NodesData() []byte {
 
 func NewNodesCollector() *NodesCollector {
 	return &NodesCollector{
-		alloc: prometheus.NewDesc("slurm_nodes_alloc", "Allocated nodes", nil, nil),
-		comp:  prometheus.NewDesc("slurm_nodes_comp", "Completing nodes", nil, nil),
-		down:  prometheus.NewDesc("slurm_nodes_down", "Down nodes", nil, nil),
-		drain: prometheus.NewDesc("slurm_nodes_drain", "Drain nodes", nil, nil),
-		err:   prometheus.NewDesc("slurm_nodes_err", "Error nodes", nil, nil),
-		fail:  prometheus.NewDesc("slurm_nodes_fail", "Fail nodes", nil, nil),
-		idle:  prometheus.NewDesc("slurm_nodes_idle", "Idle nodes", nil, nil),
-		maint: prometheus.NewDesc("slurm_nodes_maint", "Maint nodes", nil, nil),
-		mix:   prometheus.NewDesc("slurm_nodes_mix", "Mix nodes", nil, nil),
-		resv:  prometheus.NewDesc("slurm_nodes_resv", "Reserved nodes", nil, nil),
+		alloc:   prometheus.NewDesc("slurm_nodes_alloc", "Allocated nodes", nil, nil),
+		comp:    prometheus.NewDesc("slurm_nodes_comp", "Completing nodes", nil, nil),
+		down:    prometheus.NewDesc("slurm_nodes_down", "Down nodes", nil, nil),
+		drain:   prometheus.NewDesc("slurm_nodes_drain", "Drain nodes", nil, nil),
+		err:     prometheus.NewDesc("slurm_nodes_err", "Error nodes", nil, nil),
+		fail:    prometheus.NewDesc("slurm_nodes_fail", "Fail nodes", nil, nil),
+		idle:    prometheus.NewDesc("slurm_nodes_idle", "Idle nodes", nil, nil),
+		maint:   prometheus.NewDesc("slurm_nodes_maint", "Maint nodes", nil, nil),
+		mix:     prometheus.NewDesc("slurm_nodes_mix", "Mix nodes", nil, nil),
+		resv:    prometheus.NewDesc("slurm_nodes_resv", "Reserved nodes", nil, nil),
+		planned: prometheus.NewDesc("slurm_nodes_planned", "Planned nodes", nil, nil),
 	}
 }
 
 type NodesCollector struct {
-	alloc *prometheus.Desc
-	comp  *prometheus.Desc
-	down  *prometheus.Desc
-	drain *prometheus.Desc
-	err   *prometheus.Desc
-	fail  *prometheus.Desc
-	idle  *prometheus.Desc
-	maint *prometheus.Desc
-	mix   *prometheus.Desc
-	resv  *prometheus.Desc
+	alloc   *prometheus.Desc
+	comp    *prometheus.Desc
+	down    *prometheus.Desc
+	drain   *prometheus.Desc
+	err     *prometheus.Desc
+	fail    *prometheus.Desc
+	idle    *prometheus.Desc
+	maint   *prometheus.Desc
+	mix     *prometheus.Desc
+	resv    *prometheus.Desc
+	planned *prometheus.Desc
 }
 
 // Send all metric descriptions
@@ -173,6 +182,7 @@ func (nc *NodesCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- nc.maint
 	ch <- nc.mix
 	ch <- nc.resv
+	ch <- nc.planned
 }
 func (nc *NodesCollector) Collect(ch chan<- prometheus.Metric) {
 	nm := NodesGetMetrics()
@@ -186,4 +196,5 @@ func (nc *NodesCollector) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(nc.maint, prometheus.GaugeValue, nm.maint)
 	ch <- prometheus.MustNewConstMetric(nc.mix, prometheus.GaugeValue, nm.mix)
 	ch <- prometheus.MustNewConstMetric(nc.resv, prometheus.GaugeValue, nm.resv)
+	ch <- prometheus.MustNewConstMetric(nc.planned, prometheus.GaugeValue, nm.planned)
 }
