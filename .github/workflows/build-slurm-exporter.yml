@@ -5,6 +5,7 @@ on:
     branches: [ "main" ]
 
 jobs:
+
   build-and-upload:
     runs-on: ubuntu-latest
     name: Build Go Script and Upload to OCI Artifacts
