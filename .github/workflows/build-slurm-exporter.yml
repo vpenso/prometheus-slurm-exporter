@@ -28,8 +28,8 @@ jobs:
 
       - name: Install Slurm dependencies
         run: |
-          apt-get update 
-          history apt-get install -y munge libmunge-dev libmunge2 slurm-wlm slurm-wlm-doc
+          sudo apt-get update 
+          sudo apt-get install -y munge libmunge-dev libmunge2 slurm-wlm slurm-wlm-doc
       
       - name: Configure Munge
         run: |
