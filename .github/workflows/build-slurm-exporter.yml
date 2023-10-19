@@ -1,0 +1,47 @@
+name: Go Binary CI to OCI Artifacts
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    name: Build Go Script and Upload to OCI Artifacts
+    env:
+      OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
+      OCI_CLI_TENANCY: ${{ secrets.OCI_CLI_TENANCY }}
+      OCI_CLI_FINGERPRINT: ${{ secrets.OCI_CLI_FINGERPRINT }}
+      OCI_CLI_KEY_CONTENT: ${{ secrets.OCI_CLI_KEY_CONTENT }}
+      OCI_CLI_REGION: ${{ secrets.OCI_CLI_REGION }}
+      GO111MODULE: "on"
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17  # Use the specific Go version.
+          
+      - name: Build Go script
+        run: make   # This will generate a binary named "prometheus-slurm-exporter"
+      
+      - name: Install OCI CLI
+        run: |
+          bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)"
+          
+      - name: Setup OCI CLI
+        run: |
+          oci setup config --cli-rc-file /etc/oci-cli.rc
+          echo "${{ env.OCI_CLI_KEY_CONTENT }}" > /tmp/oci_private.pem
+          echo -e "[DEFAULT]\nuser=${{ env.OCI_CLI_USER }}\nfingerprint=${{ env.OCI_CLI_FINGERPRINT }}\nkey_file=/tmp/oci_private.pem\nregion=${{ env.OCI_CLI_REGION }}\ntenancy=${{ env.OCI_CLI_TENANCY }}" > ~/.oci/config
+          
+      - name: Upload Binary to OCI Artifacts
+        run: |
+          oci artifacts generic artifact upload-by-path \
+            --repository-id ocid1.artifactrepository.oc1.us-sanjose-1.0.amaaaaaa2m3huzqayy3wpbwafgbtjlv4uf4bq7ztdu4p6tb52baua5fs66ra \
+            --artifact-path prometheus-slurm-exporter \
+            --artifact-version v1.0 \
+            --content-body ./prometheus-slurm-exporter

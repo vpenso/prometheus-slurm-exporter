@@ -1,0 +1,4 @@
+99 (null) gpu:0
+3 gpu:2 gpu:2
+1 gpu:2 gpu:1
+20 gpu:2 gpu:0

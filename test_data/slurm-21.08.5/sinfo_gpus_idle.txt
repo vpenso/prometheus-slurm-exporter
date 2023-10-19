@@ -1,0 +1,1 @@
+2 gpu:8 gpu:(null):0(IDX:N/A)
