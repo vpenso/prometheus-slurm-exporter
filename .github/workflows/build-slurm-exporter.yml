@@ -25,7 +25,27 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.17  # Use the specific Go version.
-          
+
+      - name: Install Slurm dependencies
+        run: sudo apt-get update && sudo apt-get install -y munge libmunge-dev libmunge2 slurm-wlm slurm-wlm-doc
+      
+      - name: Configure Munge
+        run: |
+          sudo create-munge-key
+          sudo systemctl enable munge
+          sudo systemctl start munge
+
+      - name: Configure Slurm
+        run: |
+          echo "ControlMachine=$(hostname)" | sudo tee /etc/slurm-llnl/slurm.conf
+          sudo systemctl enable slurmctld
+          sudo systemctl start slurmctld
+          sudo systemctl enable slurmd
+          sudo systemctl start slurmd
+
+      - name: Test Slurm installation
+        run: sinfo
+
       - name: Build Go script
         run: make   # This will generate a binary named "prometheus-slurm-exporter"
       
