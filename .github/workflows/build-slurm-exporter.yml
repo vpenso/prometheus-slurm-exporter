@@ -25,12 +25,21 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.17  # Use the specific Go version.
-
+          
       - name: Install Slurm dependencies
         run: |
-          sudo apt-get update 
+          sudo apt-get update
           sudo apt-get install -y munge libmunge-dev libmunge2 slurm-wlm slurm-wlm-doc
-      
+
+      - name: Check MUNGE installation
+        run: |
+          which munge
+          munge --version
+
+      - name: Locate create-munge-key
+        run: |
+          find / -name create-munge-key 2>/dev/null
+
       - name: Configure Munge
         run: |
           /usr/sbin/create-munge-key
@@ -39,11 +48,11 @@ jobs:
 
       - name: Configure Slurm
         run: |
-          echo "ControlMachine=$(hostname)" | tee /etc/slurm-llnl/slurm.conf
-          systemctl enable slurmctld
-          systemctl start slurmctld
-          systemctl enable slurmd
-          systemctl start slurmd
+          echo "ControlMachine=$(hostname)" | sudo tee /etc/slurm-llnl/slurm.conf
+          sudo systemctl enable slurmctld
+          sudo systemctl start slurmctld
+          sudo systemctl enable slurmd
+          sudo systemctl start slurmd
 
       - name: Test Slurm installation
         run: sinfo
