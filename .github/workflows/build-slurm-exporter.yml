@@ -33,17 +33,17 @@ jobs:
       
       - name: Configure Munge
         run: |
-          sudo -n /usr/sbin/create-munge-key
-          sudo -n systemctl enable munge
-          sudo -n systemctl start munge
+          /usr/sbin/create-munge-key
+          systemctl enable munge
+          systemctl start munge
 
       - name: Configure Slurm
         run: |
-          echo "ControlMachine=$(hostname)" | sudo tee /etc/slurm-llnl/slurm.conf
-          sudo systemctl enable slurmctld
-          sudo systemctl start slurmctld
-          sudo systemctl enable slurmd
-          sudo systemctl start slurmd
+          echo "ControlMachine=$(hostname)" | tee /etc/slurm-llnl/slurm.conf
+          systemctl enable slurmctld
+          systemctl start slurmctld
+          systemctl enable slurmd
+          systemctl start slurmd
 
       - name: Test Slurm installation
         run: sinfo
