@@ -60,7 +60,7 @@ jobs:
           mkdir -p ~/.oci
           echo "${{ env.OCI_CLI_KEY_CONTENT }}" > /tmp/oci_private.pem
           echo -e "[DEFAULT]\nuser=${{ env.OCI_CLI_USER }}\nfingerprint=${{ env.OCI_CLI_FINGERPRINT }}\nkey_file=/tmp/oci_private.pem\nregion=${{ env.OCI_CLI_REGION }}\ntenancy=${{ env.OCI_CLI_TENANCY }}" > ~/.oci/config
-
+          cat ~/.oci/config
           
       - name: Upload Binary to OCI Artifacts
         run: |
