@@ -36,10 +36,6 @@ jobs:
           which munge
           munge --version
 
-      - name: Locate create-munge-key
-        run: |
-          find / -name create-munge-key 2>/dev/null
-
       - name: Configure Munge
         run: |
           /usr/sbin/create-munge-key
