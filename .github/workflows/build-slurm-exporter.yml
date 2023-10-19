@@ -33,9 +33,9 @@ jobs:
       
       - name: Configure Munge
         run: |
-          sudo /usr/sbin/create-munge-key
-          sudo systemctl enable munge
-          sudo systemctl start munge
+          sudo -n /usr/sbin/create-munge-key
+          sudo -n systemctl enable munge
+          sudo -n systemctl start munge
 
       - name: Configure Slurm
         run: |
