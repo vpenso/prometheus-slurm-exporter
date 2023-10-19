@@ -7,7 +7,7 @@ on:
 jobs:
 
   build-and-upload:
-    runs-on: ubuntu
+    runs-on: ubuntu-latest
     name: Build Go Script and Upload to OCI Artifacts
     env:
       OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
