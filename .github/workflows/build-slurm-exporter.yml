@@ -7,7 +7,7 @@ on:
 jobs:
 
   build-and-upload:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu
     name: Build Go Script and Upload to OCI Artifacts
     env:
       OCI_CLI_USER: ${{ secrets.OCI_CLI_USER }}
@@ -25,30 +25,25 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.17  # Use the specific Go version.
-          
+
       - name: Install Slurm dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y munge libmunge-dev libmunge2 slurm-wlm slurm-wlm-doc
-
-      - name: Check MUNGE installation
-        run: |
-          which munge
-          munge --version
-
+          apt-get update 
+          history apt-get install -y munge libmunge-dev libmunge2 slurm-wlm slurm-wlm-doc
+      
       - name: Configure Munge
         run: |
-          /usr/sbin/create-munge-key
-          systemctl enable munge
-          systemctl start munge
+          service munge stop
+          service munge start
 
       - name: Configure Slurm
         run: |
-          echo "ControlMachine=$(hostname)" | sudo tee /etc/slurm-llnl/slurm.conf
-          sudo systemctl enable slurmctld
-          sudo systemctl start slurmctld
-          sudo systemctl enable slurmd
-          sudo systemctl start slurmd
+          echo "ControlMachine=$(hostname)" | tee -a /etc/slurm/slurm.conf
+          echo "ClusterName=slurmcluster" | tee -a /etc/slurm/slurm.conf
+          echo "NodeName=$(hostname) CPUs=1 State=UNKNOWN" | tee -a /etc/slurm/slurm.conf
+          echo "PartitionName=debug Nodes=$(hostname) Default=YES MaxTime=INFINITE State=UP" | tee -a /etc/slurm/slurm.conf
+          service slurmctld restart
+          service slurmd restart
 
       - name: Test Slurm installation
         run: sinfo
