@@ -38,50 +38,82 @@ func FairShareData() []byte {
     return out.Bytes()
 }
 
+// 1. Modify the FairShareMetrics struct to include these two new fields.
 type FairShareMetrics struct {
-    fairshare float64
+    fairshare   float64
+    rawUsage    float64
+    effectvUsage float64
 }
 
+// 2. Update the ParseFairShareMetrics function to extract and parse the values for RawUsage and EffectvUsage.
 func ParseFairShareMetrics() map[string]*FairShareMetrics {
     accounts := make(map[string]*FairShareMetrics)
     lines := strings.Split(strings.TrimSpace(string(FairShareData())), "\n")
     for _, line := range lines {
         parts := strings.Split(line, "|")
-        if len(parts) < 5 {
+        if len(parts) < 7 { // Assuming that the required values are in columns 5 and 6
             continue
         }
         account := strings.TrimSpace(parts[0])
         if _, exists := accounts[account]; !exists {
             accounts[account] = &FairShareMetrics{}
         }
+
+        // Original fairshare parsing code
         fairshare, err := strconv.ParseFloat(strings.TrimSpace(parts[3]), 64)
         if err != nil {
             log.Printf("Failed to parse fairshare: %s", err)
             continue
         }
         accounts[account].fairshare = fairshare
+
+        // New code for RawUsage parsing
+        rawUsage, err := strconv.ParseFloat(strings.TrimSpace(parts[4]), 64)
+        if err != nil {
+            log.Printf("Failed to parse rawUsage: %s", err)
+            continue
+        }
+        accounts[account].rawUsage = rawUsage
+
+        // New code for EffectvUsage parsing
+        effectvUsage, err := strconv.ParseFloat(strings.TrimSpace(parts[5]), 64)
+        if err != nil {
+            log.Printf("Failed to parse effectvUsage: %s", err)
+            continue
+        }
+        accounts[account].effectvUsage = effectvUsage
     }
     return accounts
 }
 
+// 3. Update the FairShareCollector struct to describe these new metrics.
 type FairShareCollector struct {
-    fairshare *prometheus.Desc
+    fairshare   *prometheus.Desc
+    rawUsage    *prometheus.Desc
+    effectvUsage *prometheus.Desc
 }
 
 func NewFairShareCollector() *FairShareCollector {
     labels := []string{"account"}
     return &FairShareCollector{
-        fairshare: prometheus.NewDesc("slurm_account_fairshare", "FairShare for account", labels, nil),
+        fairshare:   prometheus.NewDesc("slurm_account_fairshare", "FairShare for account", labels, nil),
+        rawUsage:    prometheus.NewDesc("slurm_account_rawUsage", "RawUsage for account", labels, nil),
+        effectvUsage: prometheus.NewDesc("slurm_account_effectvUsage", "EffectvUsage for account", labels, nil),
     }
 }
 
+// 4. Update the Collect method of the FairShareCollector to send these metrics to Prometheus.
 func (fsc *FairShareCollector) Describe(ch chan<- *prometheus.Desc) {
     ch <- fsc.fairshare
+    ch <- fsc.rawUsage
+    ch <- fsc.effectvUsage
 }
 
 func (fsc *FairShareCollector) Collect(ch chan<- prometheus.Metric) {
     fsm := ParseFairShareMetrics()
     for f := range fsm {
         ch <- prometheus.MustNewConstMetric(fsc.fairshare, prometheus.GaugeValue, fsm[f].fairshare, f)
+        ch <- prometheus.MustNewConstMetric(fsc.rawUsage, prometheus.GaugeValue, fsm[f].rawUsage, f)
+        ch <- prometheus.MustNewConstMetric(fsc.effectvUsage, prometheus.GaugeValue, fsm[f].effectvUsage, f)
     }
 }
