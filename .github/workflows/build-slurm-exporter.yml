@@ -38,12 +38,12 @@ jobs:
 
       - name: Configure Slurm
         run: |
-          echo "ControlMachine=$(hostname)" | tee -a /etc/slurm/slurm.conf
-          echo "ClusterName=slurmcluster" | tee -a /etc/slurm/slurm.conf
-          echo "NodeName=$(hostname) CPUs=1 State=UNKNOWN" | tee -a /etc/slurm/slurm.conf
-          echo "PartitionName=debug Nodes=$(hostname) Default=YES MaxTime=INFINITE State=UP" | tee -a /etc/slurm/slurm.conf
-          service slurmctld restart
-          service slurmd restart
+          echo "ControlMachine=$(hostname)" | sudo tee -a /etc/slurm/slurm.conf
+          echo "ClusterName=slurmcluster" | sudo tee -a /etc/slurm/slurm.conf
+          echo "NodeName=$(hostname) CPUs=1 State=UNKNOWN" | sudo tee -a /etc/slurm/slurm.conf
+          echo "PartitionName=debug Nodes=$(hostname) Default=YES MaxTime=INFINITE State=UP" | sudo tee -a /etc/slurm/slurm.conf
+          sudo service slurmctld restart
+          sudo service slurmd restart
 
       - name: Test Slurm installation
         run: sinfo
