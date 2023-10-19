@@ -57,13 +57,13 @@ jobs:
 
       - name: Setup OCI CLI
         run: |
-          oci setup config --cli-rc-file /etc/oci-cli.rc
+          /home/runner/bin/oci setup config --cli-rc-file /etc/oci-cli.rc
           echo "${{ env.OCI_CLI_KEY_CONTENT }}" > /tmp/oci_private.pem
           echo -e "[DEFAULT]\nuser=${{ env.OCI_CLI_USER }}\nfingerprint=${{ env.OCI_CLI_FINGERPRINT }}\nkey_file=/tmp/oci_private.pem\nregion=${{ env.OCI_CLI_REGION }}\ntenancy=${{ env.OCI_CLI_TENANCY }}" > ~/.oci/config
           
       - name: Upload Binary to OCI Artifacts
         run: |
-          oci artifacts generic artifact upload-by-path \
+          /home/runner/bin/oci artifacts generic artifact upload-by-path \
             --repository-id ocid1.artifactrepository.oc1.us-sanjose-1.0.amaaaaaa2m3huzqayy3wpbwafgbtjlv4uf4bq7ztdu4p6tb52baua5fs66ra \
             --artifact-path prometheus-slurm-exporter \
             --artifact-version v1.0 \
