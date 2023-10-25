@@ -21,6 +21,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"regexp"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -82,12 +83,17 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 // NodeData executes the sinfo command to get data for each node
 // It returns the output of the sinfo command
 func NodeData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-N", "-O", "NodeList,AllocMem,Memory,CPUsState,StateLong")
+	// we make sure the long node names will not be truncated and will print nicely (here is 30 chars limit, if You need more -> change 30 to something bigger)
+	cmd := exec.Command("sinfo", "-h", "-N", "-O", "NodeList:30,AllocMem,Memory,CPUsState,StateLong")
 	out, err := cmd.Output()
 	if err != nil {
 		log.Fatal(err)
 	}
-	return out
+
+	// let's do a regexp and then crush all spaces into single one to ease the parsing process
+	re := regexp.MustCompile(`\s+`)
+	cleanedOutput := re.ReplaceAllString(string(out), " ")
+	return []byte(cleanedOutput)
 }
 
 type NodeCollector struct {
