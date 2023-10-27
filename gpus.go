@@ -32,6 +32,15 @@ type GPUsMetrics struct {
 	total       float64
 	utilization float64
 }
+    UserGPUsDCGM map[string]float64   `json:"user_gpus_dcgm"`
+    UserGPUsSLURM map[string]float64 `json:"user_gpus_slurm"`
+    
+	alloc       float64
+	idle        float64
+	other       float64
+	total       float64
+	utilization float64
+}
 
 func GPUsGetMetrics() *GPUsMetrics {
 	return ParseGPUsMetrics()
@@ -167,7 +176,15 @@ func ParseTotalGPUs(data []byte) float64 {
 	return num_gpus
 }
 
+
 func ParseGPUsMetrics() *GPUsMetrics {
+    var gm GPUsMetrics
+    // ... (existing code) ...
+    gm.UserGPUsDCGM = ParseUserGPUsDCGM()
+    gm.UserGPUsSLURM = ParseUserGPUsSLURM()
+    return &gm
+}
+
 	var gm GPUsMetrics
 	total_gpus := ParseTotalGPUs(TotalGPUsData())
 	allocated_gpus := ParseAllocatedGPUs(AllocatedGPUsData())
@@ -245,4 +262,43 @@ func (cc *GPUsCollector) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(cc.other, prometheus.GaugeValue, cm.other)
 	ch <- prometheus.MustNewConstMetric(cc.total, prometheus.GaugeValue, cm.total)
 	ch <- prometheus.MustNewConstMetric(cc.utilization, prometheus.GaugeValue, cm.utilization)
+}
+
+// ParseUserGPUsDCGM retrieves and parses GPU usage per user using DCGM and Linux tools
+func ParseUserGPUsDCGM() map[string]float64 {
+    userGPUs := make(map[string]float64)
+    // Implement data retrieval and parsing logic here for DCGM and Linux tools
+    return userGPUs
+}
+
+// ParseUserGPUsSLURM retrieves and parses GPU usage per user using SLURM commands
+func ParseUserGPUsSLURM() map[string]float64 {
+    userGPUs := make(map[string]float64)
+    // Implement data retrieval and parsing logic here for SLURM commands
+    return userGPUs
+}
+
+type GPUsCollector struct {
+    // ... (existing fields) ...
+    userGPUsDCGM *prometheus.Desc
+    userGPUsSLURM *prometheus.Desc
+}
+
+func NewGPUsCollector() *GPUsCollector {
+    return &GPUsCollector{
+        // ... (existing fields initialization) ...
+        userGPUsDCGM: prometheus.NewDesc("slurm_user_gpus_dcgm", "Number of GPUs used per user over time, obtained using DCGM and Linux tools", []string{"user"}, nil),
+        userGPUsSLURM: prometheus.NewDesc("slurm_user_gpus_slurm", "Number of GPUs used per user over time, obtained using SLURM commands", []string{"user"}, nil),
+    }
+}
+
+func (cc *GPUsCollector) Collect(ch chan<- prometheus.Metric) {
+    cm := GPUsGetMetrics()
+    // ... (existing code) ...
+    for user, gpus := range cm.UserGPUsDCGM {
+        ch <- prometheus.MustNewConstMetric(cc.userGPUsDCGM, prometheus.GaugeValue, gpus, user)
+    }
+    for user, gpus := range cm.UserGPUsSLURM {
+        ch <- prometheus.MustNewConstMetric(cc.userGPUsSLURM, prometheus.GaugeValue, gpus, user)
+    }
 }
