@@ -65,3 +65,13 @@ func TestGPUsGetMetrics(t *testing.T) {
 	t.Logf("User GPUs DCGM: %v", metrics.UserGPUsDCGM)
 	t.Logf("User GPUs SLURM: %v", metrics.UserGPUsSLURM)
 }
+
+func TestUserGPUsDCGM(t *testing.T) {
+	userGPUs := ParseUserGPUsDCGM()
+	t.Logf("User GPUs DCGM: %v", userGPUs)
+}
+
+func TestUserGPUsSLURM(t *testing.T) {
+	userGPUs := ParseUserGPUsSLURM()
+	t.Logf("User GPUs SLURM: %v", userGPUs)
+}
