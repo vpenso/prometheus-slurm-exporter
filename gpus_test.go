@@ -29,35 +29,39 @@ func TestGPUsMetrics(t *testing.T) {
 		slurm_version := strings.TrimPrefix(test_data_path, "test_data/slurm-")
 		t.Logf("slurm-%s", slurm_version)
 
-		// Read the input data from a file
-		file, err := os.Open(test_data_path + "/sinfo_gpus_allocated.txt")
+		// Read the allocated GPUs data and log the result
+		allocatedData, err := ioutil.ReadFile(filepath.Join(test_data_path, "sinfo_gpus_allocated.txt"))
 		if err != nil {
 			t.Fatalf("Can not open test data: %v", err)
 		}
-		data, _ := ioutil.ReadAll(file)
-		metrics := ParseAllocatedGPUs(data)
-		t.Logf("Allocated: %+v", metrics)
+		allocatedGPUs := ParseAllocatedGPUs(allocatedData)
+		t.Logf("Allocated GPUs: %v", allocatedGPUs)
 
-		// Read the input data from a file
-		file, err = os.Open(test_data_path + "/sinfo_gpus_idle.txt")
+		// Read the idle GPUs data and log the result
+		idleData, err := ioutil.ReadFile(filepath.Join(test_data_path, "sinfo_gpus_idle.txt"))
 		if err != nil {
 			t.Fatalf("Can not open test data: %v", err)
 		}
-		data, _ = ioutil.ReadAll(file)
-		metrics = ParseIdleGPUs(data)
-		t.Logf("Idle: %+v", metrics)
+		idleGPUs := ParseIdleGPUs(idleData)
+		t.Logf("Idle GPUs: %v", idleGPUs)
 
-		// Read the input data from a file
-		file, err = os.Open(test_data_path + "/sinfo_gpus_total.txt")
+		// Read the total GPUs data and log the result
+		totalData, err := ioutil.ReadFile(filepath.Join(test_data_path, "sinfo_gpus_total.txt"))
 		if err != nil {
 			t.Fatalf("Can not open test data: %v", err)
 		}
-		data, _ = ioutil.ReadAll(file)
-		metrics = ParseTotalGPUs(data)
-		t.Logf("Total: %+v", metrics)
+		totalGPUs := ParseTotalGPUs(totalData)
+		t.Logf("Total GPUs: %v", totalGPUs)
 	}
 }
 
 func TestGPUsGetMetrics(t *testing.T) {
-	t.Logf("%+v", GPUsGetMetrics())
+	metrics := GPUsGetMetrics()
+	t.Logf("Allocated GPUs: %v", metrics.alloc)
+	t.Logf("Idle GPUs: %v", metrics.idle)
+	t.Logf("Other GPUs: %v", metrics.other)
+	t.Logf("Total GPUs: %v", metrics.total)
+	t.Logf("Utilization: %v", metrics.utilization)
+	t.Logf("User GPUs DCGM: %v", metrics.UserGPUsDCGM)
+	t.Logf("User GPUs SLURM: %v", metrics.UserGPUsSLURM)
 }

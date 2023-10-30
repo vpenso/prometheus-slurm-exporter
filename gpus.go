@@ -179,23 +179,18 @@ func ParseTotalGPUs(data []byte) float64 {
 
 func ParseGPUsMetrics() *GPUsMetrics {
     var gm GPUsMetrics
-    // ... (existing code) ...
+    total_gpus := ParseTotalGPUs(TotalGPUsData())
+    allocated_gpus := ParseAllocatedGPUs(AllocatedGPUsData())
+    idle_gpus := ParseIdleGPUs(IdleGPUsData())
+    other_gpus := total_gpus - allocated_gpus - idle_gpus
+    gm.alloc = allocated_gpus
+    gm.idle = idle_gpus
+    gm.other = other_gpus
+    gm.total = total_gpus
+    gm.utilization = allocated_gpus / total_gpus
     gm.UserGPUsDCGM = ParseUserGPUsDCGM()
     gm.UserGPUsSLURM = ParseUserGPUsSLURM()
     return &gm
-}
-
-	var gm GPUsMetrics
-	total_gpus := ParseTotalGPUs(TotalGPUsData())
-	allocated_gpus := ParseAllocatedGPUs(AllocatedGPUsData())
-	idle_gpus := ParseIdleGPUs(IdleGPUsData())
-	other_gpus := total_gpus - allocated_gpus - idle_gpus
-	gm.alloc = allocated_gpus
-	gm.idle = idle_gpus
-	gm.other = other_gpus
-	gm.total = total_gpus
-	gm.utilization = allocated_gpus / total_gpus
-	return &gm
 }
 
 func AllocatedGPUsData() []byte {
@@ -279,14 +274,22 @@ func ParseUserGPUsSLURM() map[string]float64 {
 }
 
 type GPUsCollector struct {
-    // ... (existing fields) ...
+    alloc       *prometheus.Desc
+    idle        *prometheus.Desc
+    other       *prometheus.Desc
+    total       *prometheus.Desc
+    utilization *prometheus.Desc
     userGPUsDCGM *prometheus.Desc
     userGPUsSLURM *prometheus.Desc
 }
 
 func NewGPUsCollector() *GPUsCollector {
     return &GPUsCollector{
-        // ... (existing fields initialization) ...
+        alloc:       prometheus.NewDesc("slurm_gpus_alloc", "Allocated GPUs", nil, nil),
+        idle:        prometheus.NewDesc("slurm_gpus_idle", "Idle GPUs", nil, nil),
+        other:       prometheus.NewDesc("slurm_gpus_other", "Other GPUs", nil, nil),
+        total:       prometheus.NewDesc("slurm_gpus_total", "Total GPUs", nil, nil),
+        utilization: prometheus.NewDesc("slurm_gpus_utilization", "Total GPU utilization", nil, nil),
         userGPUsDCGM: prometheus.NewDesc("slurm_user_gpus_dcgm", "Number of GPUs used per user over time, obtained using DCGM and Linux tools", []string{"user"}, nil),
         userGPUsSLURM: prometheus.NewDesc("slurm_user_gpus_slurm", "Number of GPUs used per user over time, obtained using SLURM commands", []string{"user"}, nil),
     }
@@ -294,7 +297,11 @@ func NewGPUsCollector() *GPUsCollector {
 
 func (cc *GPUsCollector) Collect(ch chan<- prometheus.Metric) {
     cm := GPUsGetMetrics()
-    // ... (existing code) ...
+    ch <- prometheus.MustNewConstMetric(cc.alloc, prometheus.GaugeValue, cm.alloc)
+    ch <- prometheus.MustNewConstMetric(cc.idle, prometheus.GaugeValue, cm.idle)
+    ch <- prometheus.MustNewConstMetric(cc.other, prometheus.GaugeValue, cm.other)
+    ch <- prometheus.MustNewConstMetric(cc.total, prometheus.GaugeValue, cm.total)
+    ch <- prometheus.MustNewConstMetric(cc.utilization, prometheus.GaugeValue, cm.utilization)
     for user, gpus := range cm.UserGPUsDCGM {
         ch <- prometheus.MustNewConstMetric(cc.userGPUsDCGM, prometheus.GaugeValue, gpus, user)
     }
