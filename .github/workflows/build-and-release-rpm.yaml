@@ -11,7 +11,7 @@ jobs:
   build-rocky-rpms:
     runs-on: ubuntu-latest
     container:
-      image: rockylinux:8.8
+      image: rockylinux:9.2
 
     # Required to upload the built RPM to the release
     permissions:
