@@ -1,3 +1,5 @@
 bin/
 go/
 *.snap
+*.tar.gz
+prometheus-slurm-exporter
