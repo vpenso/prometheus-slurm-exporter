@@ -10,7 +10,7 @@ commands.
 export VERSION=1.15 OS=linux ARCH=amd64
 wget https://dl.google.com/go/go$VERSION.$OS-$ARCH.tar.gz
 tar -xzvf go$VERSION.$OS-$ARCH.tar.gz
-export PATH=$PWD/go/bin:$PATH
+export GOPATH=$PWD/go/bin:$PATH
 ```
 
 _Alternatively install Go using the packaging system of your Linux distribution._
