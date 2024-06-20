@@ -2,9 +2,11 @@
 Description=Prometheus SLURM Exporter
 
 [Service]
-ExecStart=/usr/bin/prometheus-slurm-exporter
+Environment="PATH=/cm/local/apps/cm-setup/bin:/cm/local/apps/cluster-tools/bin:/cm/local/apps/cmd/sbin:/cm/local/apps/cmd/bin:/cm/shared/apps/slurm/current/bin:/cm/shared/apps/slurm/current/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/cm/local/apps/environment-modules/4.5.3/bin:/cm/shared/apps/slurm/current/sbin:"
+Environment="SLURM_CONF=/cm/shared/apps/slurm/var/etc/slurm/slurm.conf"
+ExecStart=/usr/bin/prometheus-slurm-exporter -gpus-acct -listen-address=":8585"
 Restart=always
-RestartSec=15
+RestartSec=0
 
 [Install]
 WantedBy=multi-user.target
