@@ -25,7 +25,7 @@ import (
 )
 
 func PartitionsData() []byte {
-        cmd := exec.Command("sinfo", "-h", "-o%R,%C")
+        cmd := exec.Command("/cm/shared/apps/slurm/current/bin/sinfo", "-h", "-o%R,%C")
         stdout, err := cmd.StdoutPipe()
         if err != nil {
                 log.Fatal(err)
@@ -41,7 +41,7 @@ func PartitionsData() []byte {
 }
 
 func PartitionsPendingJobsData() []byte {
-        cmd := exec.Command("squeue","-a","-r","-h","-o%P","--states=PENDING")
+        cmd := exec.Command("/cm/shared/apps/slurm/current/bin/squeue","-a","-r","-h","-o%P","--states=PENDING")
         stdout, err := cmd.StdoutPipe()
         if err != nil {
                 log.Fatal(err)

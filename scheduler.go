@@ -49,7 +49,7 @@ type SchedulerMetrics struct {
 
 // Execute the sdiag command and return its output
 func SchedulerData() []byte {
-	cmd := exec.Command("sdiag")
+	cmd := exec.Command("/cm/shared/apps/slurm/current/bin/sdiag")
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)

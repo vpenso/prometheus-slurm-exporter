@@ -1,0 +1,62 @@
+a048                163840              193000              16/0/0/16   mixed
+a048                163840              193000              16/0/0/16   mixed
+a048                163840              193000              16/0/0/16   idle
+a048                163840              193000              16/0/0/16   idle
+a049                163840              193000              16/0/0/16   idle
+a049                163840              193000              16/0/0/16   idle
+a049                163840              193000              16/0/0/16   idle
+a049                163840              193000              16/0/0/16   idle
+a050                163840              193000              16/0/0/16   idle
+a050                163840              193000              16/0/0/16   idle
+a050                163840              193000              16/0/0/16   idle
+a051                163840              193000              16/0/0/16   idle
+a051                163840              193000              16/0/0/16   idle
+a051                163840              193000              16/0/0/16   idle
+a052                0                   193000              0/16/0/16   idle
+b001                327680              386000              32/0/0/32   down
+b001                327680              386000              32/0/0/32   down 
+b002                327680              386000              32/0/0/32   down
+b002                327680              386000              32/0/0/32   idle
+b003                296960              386000              29/3/0/32   down
+b003                296960              386000              29/3/0/32   idle
+par2dc5-ai-prd-cl02s03dgx26 0 2022669 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s03dgx27 0 2022669 192/32/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s03dgx28 0 2022670 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s03dgx29 0 2022656 64/160/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s03dgx30 0 2022670 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s03dgx31 0 2022670 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s03dgx32 0 2022656 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s04dgx01 0 2022669 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s04dgx02 0 2022670 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s04dgx03 0 2022670 46/178/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s04dgx04 0 2022670 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s04dgx05 0 2022669 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s04dgx06 0 2022669 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s04dgx07 0 2022670 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s04dgx08 0 2022669 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s04dgx09 0 2022670 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s04dgx10 0 2022656 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s04dgx11 0 2022669 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s04dgx12 0 2022656 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+par2dc5-ai-prd-cl02s04dgx13 0 2022670 128/96/0/224 mixed gpu:H100:8 gpu:H100:8(IDX:0-7)
+a048                163840              193000              16/0/0/16   mixed (null) (null)
+a048                163840              193000              16/0/0/16   mixed (null) (null)
+a048                163840              193000              16/0/0/16   idle (null) (null)
+a048                163840              193000              16/0/0/16   idle (null) (null)
+a049                163840              193000              16/0/0/16   idle gpu:tesla:4 gpu:tesla:4(IDX:0-3)
+a049                163840              193000              16/0/0/16   idle gpu:tesla:4 gpu:tesla:4(IDX:0-3)
+a049                163840              193000              16/0/0/16   idle gpu:tesla:4 gpu:tesla:4(IDX:0-3)
+a049                163840              193000              16/0/0/16   idle gpu:tesla:4 gpu:tesla:4(IDX:0-3)
+a050                163840              193000              16/0/0/16   idle gpu:tesla:4 gpu:tesla:3(IDX:0,2-3)
+a050                163840              193000              16/0/0/16   idle gpu:tesla:4 gpu:tesla:3(IDX:0,2-3)
+a050                163840              193000              16/0/0/16   idle gpu:tesla:4 gpu:tesla:3(IDX:0,2-3)
+a051                163840              193000              16/0/0/16   idle gpu:tesla:4 gpu:v100:0(IDX:N/A)
+a051                163840              193000              16/0/0/16   idle gpu:tesla:4 gpu:v100:0(IDX:N/A)
+a051                163840              193000              16/0/0/16   idle gpu:tesla:4 gpu:v100:0(IDX:N/A)
+a052                0                   193000              0/16/0/16   idle (null) (null)
+b001                327680              386000              32/0/0/32   down (null) (null)
+b001                327680              386000              32/0/0/32   down (null) (null)
+b002                327680              386000              32/0/0/32   down (null) (null)
+b002                327680              386000              32/0/0/32   idle (null) (null)
+b003                296960              386000              29/3/0/32   down (null) (null)
+b003                296960              386000              29/3/0/32   idle (null) (null)

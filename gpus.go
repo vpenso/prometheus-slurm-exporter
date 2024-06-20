@@ -183,17 +183,17 @@ func ParseGPUsMetrics() *GPUsMetrics {
 
 func AllocatedGPUsData() []byte {
 	args := []string{"-a", "-h", "--Format=Nodes: ,GresUsed:", "--state=allocated"}
-	return Execute("sinfo", args)
+	return Execute("/cm/shared/apps/slurm/current/bin/sinfo", args)
 }
 
 func IdleGPUsData() []byte {
 	args := []string{"-a", "-h", "--Format=Nodes: ,Gres: ,GresUsed:", "--state=idle,allocated"}
-	return Execute("sinfo", args)
+	return Execute("/cm/shared/apps/slurm/current/bin/sinfo", args)
 }
 
 func TotalGPUsData() []byte {
 	args := []string{"-a", "-h", "--Format=Nodes: ,Gres:"}
-	return Execute("sinfo", args)
+	return Execute("/cm/shared/apps/slurm/current/bin/sinfo", args)
 }
 
 // Execute the sinfo command and return its output

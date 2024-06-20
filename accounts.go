@@ -26,7 +26,7 @@ import (
 )
 
 func AccountsData() []byte {
-        cmd := exec.Command("squeue","-a","-r","-h","-o %A|%a|%T|%C")
+        cmd := exec.Command("/cm/shared/apps/slurm/current/bin/squeue","-a","-r","-h","-o %A|%a|%T|%C")
         stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
