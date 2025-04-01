@@ -26,6 +26,7 @@ import (
 
 func init() {
 	// Metrics have to be registered to be exposed
+	prometheus.MustRegister(NewDiskCollector())
 	prometheus.MustRegister(NewAssocCollector())
 	prometheus.MustRegister(NewPrioCollector())
 	prometheus.MustRegister(NewJobCollector())
@@ -58,7 +59,6 @@ func main() {
 	if *gpuAcct {
 		prometheus.MustRegister(NewGPUsCollector()) // from gpus.go
 	}
-
 	// The Handler function provides a default handler to expose metrics
 	// via an HTTP server. "/metrics" is the usual endpoint for that.
 	log.Infof("Starting Server: %s", *listenAddress)
