@@ -21,19 +21,19 @@ import (
 	"strings"
 )
 
-type GPUsMetrics struct {
+type NPUsMetrics struct {
 	alloc       float64
 	idle        float64
 	total       float64
 	utilization float64
 }
 
-func GPUsGetMetrics() *GPUsMetrics {
-	return ParseGPUsMetrics()
+func NPUsGetMetrics() *NPUsMetrics {
+	return ParseNPUsMetrics()
 }
 
-func ParseAllocatedGPUs() float64 {
-	var num_gpus = 0.0
+func ParseAllocatedNPUs() float64 {
+	var num_npus = 0.0
 
 	args := []string{"-a", "-X", "--format=AllocTRES", "--state=RUNNING", "--noheader", "--parsable2"}
 	output := string(Execute("sacct", args))
@@ -43,10 +43,10 @@ func ParseAllocatedGPUs() float64 {
 			if len(line) > 0 {
 				line = strings.Trim(line, "\"")
 				for _, resource := range strings.Split(line, ",") {
-					if strings.HasPrefix(resource, "gres/gpu=") {
-						descriptor := strings.TrimPrefix(resource, "gres/gpu=")
-						if job_gpus, err := strconv.ParseFloat(descriptor, 64); err == nil {
-							num_gpus += job_gpus
+					if strings.HasPrefix(resource, "gres/npu=") {
+						descriptor := strings.TrimPrefix(resource, "gres/npu=")
+						if job_npus, err := strconv.ParseFloat(descriptor, 64); err == nil {
+							num_npus += job_npus
 						}
 					}
 				}
@@ -54,11 +54,11 @@ func ParseAllocatedGPUs() float64 {
 		}
 	}
 
-	return num_gpus
+	return num_npus
 }
 
-func ParseTotalGPUs() float64 {
-	var num_gpus = 0.0
+func ParseTotalNPUs() float64 {
+	var num_npus = 0.0
 
 	args := []string{"-h", "-o", "%n,%G"}
 	output := string(Execute("sinfo", args))
@@ -71,13 +71,13 @@ func ParseTotalGPUs() float64 {
 					gres := fields[1]
 					// gres column format: comma-delimited list of resources
 					for _, resource := range strings.Split(gres, ",") {
-						if strings.HasPrefix(resource, "gpu:") {
-							// format: gpu:<type>:N(S:<something>), e.g. gpu:RTX2070:2(S:0)
+						if strings.HasPrefix(resource, "npu:") {
+							// format: npu:<type>:N(S:<something>), e.g. npu:A100:2(S:0)
 							parts := strings.Split(resource, ":")
 							if len(parts) >= 3 {
 								descriptor := strings.Split(parts[2], "(")[0]
-								if node_gpus, err := strconv.ParseFloat(descriptor, 64); err == nil {
-									num_gpus += node_gpus
+								if node_npus, err := strconv.ParseFloat(descriptor, 64); err == nil {
+									num_npus += node_npus
 								}
 							}
 						}
@@ -87,22 +87,22 @@ func ParseTotalGPUs() float64 {
 		}
 	}
 
-	return num_gpus
+	return num_npus
 }
 
-func ParseGPUsMetrics() *GPUsMetrics {
-	var gm GPUsMetrics
-	total_gpus := ParseTotalGPUs()
-	allocated_gpus := ParseAllocatedGPUs()
-	gm.alloc = allocated_gpus
-	gm.idle = total_gpus - allocated_gpus
-	gm.total = total_gpus
-	if total_gpus > 0 {
-		gm.utilization = allocated_gpus / total_gpus
+func ParseNPUsMetrics() *NPUsMetrics {
+	var nm NPUsMetrics
+	total_npus := ParseTotalNPUs()
+	allocated_npus := ParseAllocatedNPUs()
+	nm.alloc = allocated_npus
+	nm.idle = total_npus - allocated_npus
+	nm.total = total_npus
+	if total_npus > 0 {
+		nm.utilization = allocated_npus / total_npus
 	} else {
-		gm.utilization = 0
+		nm.utilization = 0
 	}
-	return &gm
+	return &nm
 }
 
 /*
@@ -111,16 +111,16 @@ func ParseGPUsMetrics() *GPUsMetrics {
  * https://godoc.org/github.com/prometheus/client_golang/prometheus#Collector
  */
 
-func NewGPUsCollector() *GPUsCollector {
-	return &GPUsCollector{
-		alloc:       prometheus.NewDesc("slurm_gpus_alloc", "Allocated GPUs", nil, nil),
-		idle:        prometheus.NewDesc("slurm_gpus_idle", "Idle GPUs", nil, nil),
-		total:       prometheus.NewDesc("slurm_gpus_total", "Total GPUs", nil, nil),
-		utilization: prometheus.NewDesc("slurm_gpus_utilization", "Total GPU utilization", nil, nil),
+func NewNPUsCollector() *NPUsCollector {
+	return &NPUsCollector{
+		alloc:       prometheus.NewDesc("slurm_npus_alloc", "Allocated NPUs", nil, nil),
+		idle:        prometheus.NewDesc("slurm_npus_idle", "Idle NPUs", nil, nil),
+		total:       prometheus.NewDesc("slurm_npus_total", "Total NPUs", nil, nil),
+		utilization: prometheus.NewDesc("slurm_npus_utilization", "Total NPU utilization", nil, nil),
 	}
 }
 
-type GPUsCollector struct {
+type NPUsCollector struct {
 	alloc       *prometheus.Desc
 	idle        *prometheus.Desc
 	total       *prometheus.Desc
@@ -128,16 +128,16 @@ type GPUsCollector struct {
 }
 
 // Send all metric descriptions
-func (cc *GPUsCollector) Describe(ch chan<- *prometheus.Desc) {
+func (cc *NPUsCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- cc.alloc
 	ch <- cc.idle
 	ch <- cc.total
 	ch <- cc.utilization
 }
-func (cc *GPUsCollector) Collect(ch chan<- prometheus.Metric) {
-	cm := GPUsGetMetrics()
-	ch <- prometheus.MustNewConstMetric(cc.alloc, prometheus.GaugeValue, cm.alloc)
-	ch <- prometheus.MustNewConstMetric(cc.idle, prometheus.GaugeValue, cm.idle)
-	ch <- prometheus.MustNewConstMetric(cc.total, prometheus.GaugeValue, cm.total)
-	ch <- prometheus.MustNewConstMetric(cc.utilization, prometheus.GaugeValue, cm.utilization)
+func (cc *NPUsCollector) Collect(ch chan<- prometheus.Metric) {
+	nm := NPUsGetMetrics()
+	ch <- prometheus.MustNewConstMetric(cc.alloc, prometheus.GaugeValue, nm.alloc)
+	ch <- prometheus.MustNewConstMetric(cc.idle, prometheus.GaugeValue, nm.idle)
+	ch <- prometheus.MustNewConstMetric(cc.total, prometheus.GaugeValue, nm.total)
+	ch <- prometheus.MustNewConstMetric(cc.utilization, prometheus.GaugeValue, nm.utilization)
 }
