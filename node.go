@@ -52,6 +52,11 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 
 	for _, line := range linesUniq {
 		node := strings.Fields(line)
+		// Skip malformed lines (e.g. columns merged by sinfo field-width
+		// truncation on long node names) instead of panicking.
+		if len(node) < 5 {
+			continue
+		}
 		nodeName := node[0]
 		nodeStatus := node[4] // mixed, allocated, etc.
 
@@ -82,7 +87,7 @@ func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
 // NodeData executes the sinfo command to get data for each node
 // It returns the output of the sinfo command
 func NodeData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-N", "-O", "NodeList,AllocMem,Memory,CPUsState,StateLong")
+	cmd := exec.Command("sinfo", "-h", "-N", "-O", "NodeList: ,AllocMem: ,Memory: ,CPUsState: ,StateLong: ")
 	out, err := cmd.Output()
 	if err != nil {
 		log.Fatal(err)

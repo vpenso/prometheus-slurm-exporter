@@ -54,4 +54,10 @@ func TestNodeMetrics(t *testing.T) {
 	assert.Equal(t, uint64(0), metrics["b001"].cpuIdle)
 	assert.Equal(t, uint64(0), metrics["b001"].cpuOther)
 	assert.Equal(t, uint64(32), metrics["b001"].cpuTotal)
+	// Long node names must parse (sinfo is invoked without field-width
+	// truncation), and a legacy truncation-merged line must be skipped
+	// rather than panicking.
+	assert.Contains(t, metrics, "a-very-long-nodename-c0001")
+	assert.Equal(t, uint64(163840), metrics["a-very-long-nodename-c0001"].memAlloc)
+	assert.NotContains(t, metrics, "a-very-long-nodename-c0020")
 }
