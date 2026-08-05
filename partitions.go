@@ -56,6 +56,22 @@ func PartitionsPendingJobsData() []byte {
         return out
 }
 
+func AllocatedCoresData() []byte {
+		cmd := exec.Command("squeue", "-h", "-t", "RUNNING", "-O", "Partition,NumCPUs")
+		stdout, err := cmd.StdoutPipe()
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := cmd.Start(); err != nil {
+			log.Fatal(err)
+		}
+		out, _ := ioutil.ReadAll(stdout)
+		if err := cmd.Wait(); err != nil {
+			log.Fatal(err)
+		}
+		return out
+}
+
 type PartitionMetrics struct {
         allocated float64
         idle float64
@@ -76,11 +92,9 @@ func ParsePartitionsMetrics() map[string]*PartitionMetrics {
                                 partitions[partition] = &PartitionMetrics{0,0,0,0,0}
                         }
                         states := strings.Split(line,",")[1]
-                        allocated,_ := strconv.ParseFloat(strings.Split(states,"/")[0],64)
                         idle,_ := strconv.ParseFloat(strings.Split(states,"/")[1],64)
                         other,_ := strconv.ParseFloat(strings.Split(states,"/")[2],64)
                         total,_ := strconv.ParseFloat(strings.Split(states,"/")[3],64)
-                        partitions[partition].allocated = allocated
                         partitions[partition].idle = idle
                         partitions[partition].other = other
                         partitions[partition].total = total
@@ -96,6 +110,27 @@ func ParsePartitionsMetrics() map[string]*PartitionMetrics {
                 }
         }
 
+		// get list of allocated cores from the function that uses squeue command
+		allocatedCoreLines := strings.Split(string(AllocatedCoresData()), "\n")
+		for _, line := range allocatedCoreLines {
+			fields := strings.Fields(line)
+
+			// if the field contains 2 elements, it has partition and number of cores
+			if len(fields) == 2 {
+				partition := fields[0]
+				cores, err := strconv.ParseFloat(fields[1], 64)
+
+				if err != nil {
+					log.Printf(err.Error())
+					continue
+				}
+
+				// add cores if partition exists
+				if _, exists := partitions[partition]; exists {
+					partitions[partition].allocated += cores
+				}
+			}
+		}
 
         return partitions
 }
