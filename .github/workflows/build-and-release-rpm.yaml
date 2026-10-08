@@ -1,0 +1,68 @@
+name: Release Prometheus Slurm Exporter RPM
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-tag:
+        type: string
+        description: Tag to release (e.g. 0.20)
+        required: true
+jobs:
+  build-rocky-rpms:
+    runs-on: ubuntu-latest
+    container:
+      # Rolling RL9: appstream 'go' must provide a toolchain >= the go.mod
+      # directive (currently 1.21); the pinned 9.2 image shipped Go <= 1.20.
+      image: rockylinux:9
+
+    # Required to upload the built RPM to the release
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: "${{ github.event.inputs.release-tag }}"
+          fetch-depth: 0
+
+      - name: Install Prerequisites
+        # No curl: the base image ships curl-minimal, which already provides
+        # the curl binary and conflicts with the full package. 'systemd'
+        # satisfies the spec's BuildRequires and supplies the %systemd_* macros.
+        run: dnf install -y rpm-build rpmdevtools make git go jq systemd
+
+      # Query GitHub API for assets under the specified release-tag
+      - name: Generate release number
+        id: release
+        run: |
+          RELEASE=$(curl -fSsL https://api.github.com/repos/${{ github.repository }}/releases |\
+          jq '.[] | select(.name == "${{ github.event.inputs.release-tag }}") | [.assets[].name | select(test(".*\\.rpm$"))] | length' |\
+          .github/scripts/generate_release.sh)
+          echo "release=$RELEASE" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare RPMBUILD Environment
+        run: |
+          mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS,tmp} &&
+          echo '%_topdir %(echo $HOME)/rpmbuild' > ~/.rpmmacros &&
+          cp README.md ~/rpmbuild/SOURCES &&
+          cp LICENSE ~/rpmbuild/SOURCES &&
+          cp lib/systemd/prometheus-slurm-exporter.service ~/rpmbuild/SOURCES &&
+          cp packages/rpm-ci/*.spec ~/rpmbuild/SPECS
+
+      - name: Build RPM
+        run: |
+          cd ~/rpmbuild || exit 1
+          spectool -g -R --define '_release ${{ steps.release.outputs.release }}' --define '_version ${{ github.event.inputs.release-tag }}' SPECS/prometheus-slurm-exporter.spec
+          rpmbuild -bb --define '_release ${{ steps.release.outputs.release }}' --define '_version ${{ github.event.inputs.release-tag }}' SPECS/prometheus-slurm-exporter.spec
+
+      - name: Move RPM
+        run: |
+          mkdir -p RPMS
+          cp ~/rpmbuild/RPMS/*/*.rpm RPMS/
+
+      - name: Release RPM
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "${{ github.event.inputs.release-tag }}"
+          files: "RPMS/*"

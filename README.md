@@ -178,6 +178,10 @@ curl http://localhost:9101/metrics | head
 Without `SLURM_CONF` (or a correct `/etc/slurm/slurm.conf`), the service
 starts but `/metrics` fails or returns collection errors, even though
 running the same command manually in a login shell works (see issue #95).
+Note that the unit in this repository runs the exporter as the user
+`slurm_exporter` on port 9341: the RPM (see [packages/rpm-ci](packages/rpm-ci/README.md))
+creates that account automatically; for manual installs create it yourself
+or remove the `User=`/`Group=` lines from a copy of the unit.
 
 ## Prometheus Configuration for the SLURM exporter
 

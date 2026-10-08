@@ -2,7 +2,9 @@
 Description=Prometheus SLURM Exporter
 
 [Service]
-ExecStart=/usr/bin/prometheus-slurm-exporter
+User=slurm_exporter
+Group=slurm_exporter
+ExecStart=/usr/bin/prometheus-slurm-exporter --listen-address=0.0.0.0:9341
 Restart=always
 RestartSec=15
 
