@@ -73,6 +73,18 @@
       "partitions": ["batch"]
     },
     {
+      "name": "s001",
+      "state": ["IDLE", "POWER"],
+      "cpus": 8,
+      "alloc_cpus": 0,
+      "idle_cpus": 8,
+      "real_memory": 64000,
+      "alloc_memory": 0,
+      "gres": "",
+      "gres_used": "",
+      "partitions": ["batch"]
+    },
+    {
       "name": "g003",
       "state": ["DOWN"],
       "cpus": 32,

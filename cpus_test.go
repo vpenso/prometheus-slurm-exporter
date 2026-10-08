@@ -41,7 +41,7 @@ func loadSinfoFixture(t *testing.T) *slurmcli.SinfoResponse {
 func TestCPUsMetrics(t *testing.T) {
 	cm := ParseCPUsMetrics(loadSinfoFixture(t))
 	assert.Equal(t, 68.0, cm.alloc)
-	assert.Equal(t, 140.0, cm.idle)
+	assert.Equal(t, 148.0, cm.idle)
 	assert.Equal(t, 40.0, cm.other)
-	assert.Equal(t, 248.0, cm.total)
+	assert.Equal(t, 256.0, cm.total)
 }
