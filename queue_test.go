@@ -52,4 +52,5 @@ func TestParseQueueMetrics(t *testing.T) {
 	assert.Equal(t, 0.0, qm.timeout)
 	assert.Equal(t, 0.0, qm.preempted)
 	assert.Equal(t, 0.0, qm.node_fail)
+	assert.Equal(t, 1.0, qm.oom)
 }

@@ -44,6 +44,15 @@
       "job_state": ["CANCELLED"],
       "state_reason": "None",
       "cpus": 4
+    },
+    {
+      "job_id": 106,
+      "user_name": "carol",
+      "account": "chemistry",
+      "partition": "gpu-amd",
+      "job_state": ["OUT_OF_MEMORY"],
+      "state_reason": "None",
+      "cpus": 8
     }
   ]
 }

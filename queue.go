@@ -35,6 +35,7 @@ type QueueMetrics struct {
 	timeout     float64
 	preempted   float64
 	node_fail   float64
+	oom         float64
 }
 
 // Returns the scheduler metrics
@@ -76,6 +77,8 @@ func ParseQueueMetrics(squeue *slurmcli.SqueueResponse) *QueueMetrics {
 			qm.preempted++
 		case "NODE_FAIL":
 			qm.node_fail++
+		case "OUT_OF_MEMORY":
+			qm.oom++
 		}
 	}
 	return &qm
@@ -101,6 +104,7 @@ func NewQueueCollector() *QueueCollector {
 		timeout:     prometheus.NewDesc("slurm_queue_timeout", "Jobs stopped by timeout", nil, nil),
 		preempted:   prometheus.NewDesc("slurm_queue_preempted", "Number of preempted jobs", nil, nil),
 		node_fail:   prometheus.NewDesc("slurm_queue_node_fail", "Number of jobs stopped due to node fail", nil, nil),
+		oom:         prometheus.NewDesc("slurm_queue_out_of_memory", "Jobs stopped due to out of memory", nil, nil),
 	}
 }
 
@@ -117,6 +121,7 @@ type QueueCollector struct {
 	timeout     *prometheus.Desc
 	preempted   *prometheus.Desc
 	node_fail   *prometheus.Desc
+	oom         *prometheus.Desc
 }
 
 func (qc *QueueCollector) Describe(ch chan<- *prometheus.Desc) {
@@ -132,6 +137,7 @@ func (qc *QueueCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- qc.timeout
 	ch <- qc.preempted
 	ch <- qc.node_fail
+	ch <- qc.oom
 }
 
 func (qc *QueueCollector) Collect(ch chan<- prometheus.Metric) {
@@ -148,4 +154,5 @@ func (qc *QueueCollector) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(qc.timeout, prometheus.GaugeValue, qm.timeout)
 	ch <- prometheus.MustNewConstMetric(qc.preempted, prometheus.GaugeValue, qm.preempted)
 	ch <- prometheus.MustNewConstMetric(qc.node_fail, prometheus.GaugeValue, qm.node_fail)
+	ch <- prometheus.MustNewConstMetric(qc.oom, prometheus.GaugeValue, qm.oom)
 }
