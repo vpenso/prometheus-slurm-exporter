@@ -24,7 +24,7 @@ import (
 // one call shape instead of each shelling out with its own -o field list.
 func SinfoData() (*slurmcli.SinfoResponse, error) {
 	var resp slurmcli.SinfoResponse
-	if err := slurmcli.RunJSON("sinfo", []string{"--json"}, &resp); err != nil {
+	if err := slurmcli.RunJSON("sinfo", []string{"-a", "--json"}, &resp); err != nil {
 		return nil, err
 	}
 	return &resp, nil
