@@ -57,8 +57,20 @@ If you wish to run the exporter on a different port, or the default port (8080) 
 ...
 
 # query all metrics (default port)
-curl http://localhost:8080/metrics
-```
+ curl http://localhost:8080/metrics
+ ```
+
+## Known limitation: logging dependency pin
+
+`github.com/prometheus/common` is pinned at **v0.26.0**, the last release
+that still ships the `github.com/prometheus/common/log` package used by the
+collectors. This in turn caps `prometheus/client_golang` at **v1.11.1**
+(newer client releases require common versions where `log` has been removed).
+Bumping these dependencies beyond those pins requires first migrating the
+collectors off `prometheus/common/log` onto a maintained logger (for example
+`log/slog` or `go-kit/log`); until then `go get` upgrades of common and
+client_golang will fail to build. (The current pins are the ones that clear
+all Dependabot advisories as of October 2026.)
 
 ## References
 
