@@ -25,6 +25,7 @@ type PartitionMetrics struct {
 	idle      float64
 	other     float64
 	pending   float64
+	running   float64
 	total     float64
 }
 
@@ -64,6 +65,7 @@ func ParsePartitionsMetrics() map[string]*PartitionMetrics {
 		case "PENDING":
 			p.pending++
 		case "RUNNING":
+			p.running++
 			p.allocated += float64(j.CPUs)
 		}
 	}
@@ -76,6 +78,7 @@ type PartitionsCollector struct {
 	idle      *prometheus.Desc
 	other     *prometheus.Desc
 	pending   *prometheus.Desc
+	running   *prometheus.Desc
 	total     *prometheus.Desc
 }
 
@@ -86,6 +89,7 @@ func NewPartitionsCollector() *PartitionsCollector {
 		idle:      prometheus.NewDesc("slurm_partition_cpus_idle", "Idle CPUs for partition", labels, nil),
 		other:     prometheus.NewDesc("slurm_partition_cpus_other", "Other CPUs for partition", labels, nil),
 		pending:   prometheus.NewDesc("slurm_partition_jobs_pending", "Pending jobs for partition", labels, nil),
+		running:   prometheus.NewDesc("slurm_partition_jobs_running", "Running jobs for partition", labels, nil),
 		total:     prometheus.NewDesc("slurm_partition_cpus_total", "Total CPUs for partition", labels, nil),
 	}
 }
@@ -95,6 +99,7 @@ func (pc *PartitionsCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- pc.idle
 	ch <- pc.other
 	ch <- pc.pending
+	ch <- pc.running
 	ch <- pc.total
 }
 
@@ -112,6 +117,9 @@ func (pc *PartitionsCollector) Collect(ch chan<- prometheus.Metric) {
 		}
 		if pm[p].pending > 0 {
 			ch <- prometheus.MustNewConstMetric(pc.pending, prometheus.GaugeValue, pm[p].pending, p)
+		}
+		if pm[p].running > 0 {
+			ch <- prometheus.MustNewConstMetric(pc.running, prometheus.GaugeValue, pm[p].running, p)
 		}
 		if pm[p].total > 0 {
 			ch <- prometheus.MustNewConstMetric(pc.total, prometheus.GaugeValue, pm[p].total, p)
