@@ -2,6 +2,11 @@
 
 Full commit history per tag: https://github.com/vpenso/prometheus-slurm-exporter/commits/{tag number}
 
+* **Unreleased**
+  - Fix #93: nested Slurm accounts were silently dropped from fairshare metrics (`ParseFairShareMetrics` discarded every indented `sshare` line). The parser now reconstructs the account tree from `sshare` indentation (tolerant of 1-space, 2-space or tab rendering) and exports depth >= 2 accounts on the new `slurm_subaccount_fairshare{account,parent_account,account_depth}` metric. `slurm_account_fairshare` keeps its exact historical series (root + top-level, single `account` label), so existing dashboards and recording rules are unaffected.
+  - Behavior change (fair_tree clusters): accounts whose `fairshare` field `sshare` renders blank (fair_tree algorithm, Slurm default since 19.05) are no longer exported as misleading `0` values; they are omitted. Note that on multi-space-indent clusters, top-level accounts previously dropped by the old width-based check now correctly appear in `slurm_account_fairshare`.
+  - Behavior change: a failing `sshare` invocation no longer terminates the exporter (was `log.Fatal`); the fairshare metrics go absent and the failure is logged. Alert on `absent(slurm_account_fairshare)` to detect it.
+
 * **0.22**
   - Add `slurm_account_cpus_pending` / `slurm_user_cpus_pending` metrics (pending CPUs per account/user, alongside the existing pending/running/suspended job counts). Ported from the `development` branch's pre-0.21 work, reapplied on top of the JSON-based `accounts.go`/`users.go`.
   - Fix `internal/slurmcli.ParseGresString` to correctly handle Slurm's `gpu:(null):N` GRES form (literal placeholder for "no GPU type configured") - the previous trailing-annotation stripping cut the string at the first `(`, which truncated this case since `(null)` itself contains a `(`.

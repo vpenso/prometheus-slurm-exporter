@@ -131,6 +131,16 @@ counted with this parameter almost always indicates three issues:
 
 Collect _share_ statistics for every Slurm account. Refer to the [manpage of the sshare command](https://slurm.schedmd.com/sshare.html) to get more information.
 
+* `slurm_account_fairshare{account}`: FairShare of the `root` account and the top-level accounts.
+* `slurm_subaccount_fairshare{account,parent_account,account_depth}`: FairShare of nested subaccounts (depth >= 2), with their parent account and tree depth as labels (`root` has depth 0, top-level accounts depth 1).
+
+Two caveats about the underlying `sshare` output:
+
+* The account tree is reconstructed from `sshare`'s tree indentation; the parser compares indentation *between* lines rather than assuming a fixed indent width, so 1-space, 2-space or tab rendering all yield the same logical depths.
+* When the `fair_tree` fairshare algorithm is active (Slurm default since 19.05), `sshare` leaves the fairshare field of accounts empty. Such accounts are **not exported** (rather than reported as a misleading `0`); if you need account-level usage on a `fair_tree` cluster, track `LevelFS` via your own `sshare` invocation (see the discussion in issue #93).
+
+Collection failures no longer terminate the exporter: if `sshare` cannot run, the fairshare metrics simply go absent, so alert on `absent(slurm_account_fairshare)` if you rely on them.
+
 ## Installation
 
 * Download the source for the latest release, **[0.23](https://github.com/vpenso/prometheus-slurm-exporter/releases/tag/0.23)** (requires Slurm 23.02+, see the minimum version note above), or clone `master` for the latest development version:

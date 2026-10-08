@@ -1,0 +1,11 @@
+root|0.500000
+ interns|
+ next-generation|0.100000
+ tails|0.200000
+ sysadmin|0.300000
+  sysadmin|0.400000
+ heads|0.500000
+  windows|0.600000
+	other_tab|0.700000
+garbage line without pipe
+  orphan_jump|0.800000
