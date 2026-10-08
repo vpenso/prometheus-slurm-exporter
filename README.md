@@ -133,10 +133,10 @@ Collect _share_ statistics for every Slurm account. Refer to the [manpage of the
 
 ## Installation
 
-* Download the source for the latest release, **[0.22](https://github.com/SilasMarner/prometheus-slurm-exporter/releases/tag/0.22)** (requires Slurm 23.02+, see the minimum version note above), or clone `master` for the latest development version:
+* Download the source for the latest release, **[0.23](https://github.com/vpenso/prometheus-slurm-exporter/releases/tag/0.23)** (requires Slurm 23.02+, see the minimum version note above), or clone `master` for the latest development version:
 
   ```bash
-  git clone --branch 0.22 https://github.com/SilasMarner/prometheus-slurm-exporter.git
+  git clone --branch 0.23 https://github.com/vpenso/prometheus-slurm-exporter.git
   cd prometheus-slurm-exporter
   ```
 
@@ -148,6 +148,36 @@ Collect _share_ statistics for every Slurm account. Refer to the [manpage of the
 * (**optional**) Distribute the exporter as a Snap package: consult the [following document](packages/snap/README.md). **NOTE**: this method requires the use of [Snap](https://snapcraft.io), which is built by [Canonical](https://canonical.com).
 
 [sdu]: https://www.freedesktop.org/software/systemd/man/systemd.service.html
+
+## Running as a systemd service
+
+The packaged service (see [lib/systemd/prometheus-slurm-exporter.service](lib/systemd/prometheus-slurm-exporter.service))
+runs in a clean environment: shell profile settings are **not** inherited.
+If the Slurm client tools need a non-default configuration or the default
+listen port must be changed, use a drop-in instead of editing the unit file:
+
+```bash
+systemctl edit prometheus-slurm-exporter
+```
+
+```ini
+[Service]
+Environment=SLURM_CONF=/etc/slurm/slurm.conf
+ExecStart=
+ExecStart=/usr/bin/prometheus-slurm-exporter --listen-address=0.0.0.0:9101
+```
+
+The empty `ExecStart=` line is required to reset the command before
+overriding it. Then apply and verify:
+
+```bash
+systemctl daemon-reload && systemctl restart prometheus-slurm-exporter
+curl http://localhost:9101/metrics | head
+```
+
+Without `SLURM_CONF` (or a correct `/etc/slurm/slurm.conf`), the service
+starts but `/metrics` fails or returns collection errors, even though
+running the same command manually in a login shell works (see issue #95).
 
 ## Prometheus Configuration for the SLURM exporter
 
