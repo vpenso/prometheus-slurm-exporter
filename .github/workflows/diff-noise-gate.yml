@@ -1,0 +1,61 @@
+name: Diff noise gate
+
+# Fails PRs whose diff is dominated by cosmetic churn (reindentation,
+# struct-tag realignment, blank-line noise from a newer gofmt): the raw
+# diff is large while the whitespace-insensitive diff is tiny. Functional
+# changes of any size pass; go.sum/vendor churn is excluded.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  gate:
+    name: gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Measure cosmetic diff bloat
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          ACTOR: ${{ github.actor }}
+          RAW_THRESHOLD: 40
+          EFFECTIVE_PCT: 25
+        run: |
+          set -euo pipefail
+          case "$ACTOR" in
+            vpenso|mtds)
+              echo "Maintainer actor ($ACTOR): diff noise gate skipped."
+              exit 0
+              ;;
+          esac
+          git fetch --no-tags origin "$BASE_REF"
+          base="$(git merge-base "origin/$BASE_REF" HEAD)"
+          pathspec=(-- . ':(exclude)go.sum' ':(exclude)vendor/**')
+          raw=$(git diff --numstat "$base" HEAD "${pathspec[@]}" | awk '{a+=$1; d+=$2} END {print a+d+0}')
+          eff=$(git diff -w --ignore-blank-lines --ignore-cr-at-eol --numstat "$base" HEAD "${pathspec[@]}" | awk '{a+=$1; d+=$2} END {print a+d+0}')
+          echo "raw changed lines:          $raw"
+          echo "effective (whitespace-free): $eff"
+          if [ "$raw" -le "$RAW_THRESHOLD" ] || [ $((eff * 100)) -ge $((raw * EFFECTIVE_PCT)) ]; then
+            echo "Gate passed."
+            exit 0
+          fi
+          {
+            echo "## Diff noise gate: FAILED"
+            echo
+            echo "This PR touches **$raw** lines, but only **$eff** remain in a whitespace-insensitive comparison (below ${EFFECTIVE_PCT}%): the diff is dominated by reformatting rather than a functional change."
+            echo
+            echo "Please rebase and keep only the functional hunks (for example \`git checkout -p\` or an interactive rebase), and run \`gofmt\` with the Go version pinned in \`go.mod\`, not a newer toolchain. Formatting churn is not accepted during current maintenance mode; the per-file breakdown:"
+            echo
+            echo '```text'
+            echo "file	raw	effective"
+            git diff --numstat "$base" HEAD "${pathspec[@]}" > /tmp/noise-raw.tsv
+            git diff -w --ignore-blank-lines --ignore-cr-at-eol --numstat "$base" HEAD "${pathspec[@]}" > /tmp/noise-eff.tsv
+            awk -F '\t' -v efff=/tmp/noise-eff.tsv 'FILENAME == efff {e[$3]=$1+$2; next} {printf "%s\t%d\t%d\n", $3, $1+$2, e[$3]+0}' /tmp/noise-eff.tsv /tmp/noise-raw.tsv | sort -k2,2nr | head -40
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::error::Diff noise gate: $raw raw changed lines vs $eff whitespace-insensitive (< ${EFFECTIVE_PCT}% effective). Strip cosmetic-only hunks; see the job summary for the per-file breakdown."
+          exit 1
