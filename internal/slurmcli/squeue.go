@@ -10,6 +10,8 @@ type SqueueJob struct {
 	JobState    []string `json:"job_state"` // e.g. ["PENDING"], ["RUNNING"]
 	StateReason string   `json:"state_reason"`
 	CPUs        int64    `json:"cpus"`
+	Memory      int64    `json:"memory"` // KB
+	Nodes       string   `json:"nodes"`  // node list expression, e.g. "g001" or "b00[1-3]"
 }
 
 // SqueueResponse is the top-level shape of `squeue --json`.

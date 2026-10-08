@@ -29,6 +29,7 @@ type JobMetrics struct {
 	pending_cpus float64
 	running      float64
 	running_cpus float64
+	running_mem  float64 // MB
 	suspended    float64
 }
 
@@ -51,6 +52,7 @@ func aggregateJobsByKey(squeue *slurmcli.SqueueResponse, keyFn func(slurmcli.Squ
 		case "running":
 			out[key].running++
 			out[key].running_cpus += float64(j.CPUs)
+			out[key].running_mem += float64(j.Memory) / 1024
 		case "suspended":
 			out[key].suspended++
 		}

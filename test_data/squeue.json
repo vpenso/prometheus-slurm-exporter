@@ -5,54 +5,78 @@
       "user_name": "alice",
       "account": "physics",
       "partition": "batch",
-      "job_state": ["PENDING"],
+      "job_state": [
+        "PENDING"
+      ],
       "state_reason": "Dependency",
-      "cpus": 4
+      "cpus": 4,
+      "memory": 4096,
+      "nodes": ""
     },
     {
       "job_id": 102,
       "user_name": "bob",
       "account": "physics",
       "partition": "batch",
-      "job_state": ["PENDING"],
+      "job_state": [
+        "PENDING"
+      ],
       "state_reason": "Resources",
-      "cpus": 8
+      "cpus": 8,
+      "memory": 8192,
+      "nodes": ""
     },
     {
       "job_id": 103,
       "user_name": "alice",
       "account": "chemistry",
       "partition": "gpu-amd",
-      "job_state": ["RUNNING"],
+      "job_state": [
+        "RUNNING"
+      ],
       "state_reason": "None",
-      "cpus": 16
+      "cpus": 16,
+      "memory": 32768,
+      "nodes": "g001"
     },
     {
       "job_id": 104,
       "user_name": "carol",
       "account": "chemistry",
       "partition": "batch",
-      "job_state": ["SUSPENDED"],
+      "job_state": [
+        "SUSPENDED"
+      ],
       "state_reason": "None",
-      "cpus": 2
+      "cpus": 2,
+      "memory": 2048,
+      "nodes": ""
     },
     {
       "job_id": 105,
       "user_name": "bob",
       "account": "physics",
       "partition": "batch",
-      "job_state": ["CANCELLED"],
+      "job_state": [
+        "CANCELLED"
+      ],
       "state_reason": "None",
-      "cpus": 4
+      "cpus": 4,
+      "memory": 4096,
+      "nodes": ""
     },
     {
       "job_id": 106,
       "user_name": "carol",
       "account": "chemistry",
       "partition": "gpu-amd",
-      "job_state": ["OUT_OF_MEMORY"],
+      "job_state": [
+        "OUT_OF_MEMORY"
+      ],
       "state_reason": "None",
-      "cpus": 8
+      "cpus": 8,
+      "memory": 8192,
+      "nodes": ""
     }
   ]
 }

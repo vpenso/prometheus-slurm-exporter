@@ -36,7 +36,6 @@ func TestParseAccountsMetrics(t *testing.T) {
 	assert.Equal(t, 16.0, am["chemistry"].running_cpus)
 	assert.Equal(t, 1.0, am["chemistry"].suspended)
 }
-
 func TestParseUsersMetrics(t *testing.T) {
 	um := ParseUsersMetrics(loadSqueueFixture(t))
 
@@ -45,6 +44,7 @@ func TestParseUsersMetrics(t *testing.T) {
 	assert.Equal(t, 4.0, um["alice"].pending_cpus)
 	assert.Equal(t, 1.0, um["alice"].running)
 	assert.Equal(t, 16.0, um["alice"].running_cpus)
+	assert.Equal(t, 32.0, um["alice"].running_mem) // 32768 KB -> MB
 
 	// bob: 102 pending (8 cpus), 105 cancelled (ignored)
 	assert.Equal(t, 1.0, um["bob"].pending)
@@ -57,4 +57,10 @@ func TestAggregateJobsByKeySkipsEmptyKey(t *testing.T) {
 	}}
 	out := aggregateJobsByKey(squeue, func(j slurmcli.SqueueJob) string { return j.Account })
 	assert.Empty(t, out)
+}
+
+func TestParseUserHostMetrics(t *testing.T) {
+	hm := ParseUserHostMetrics(loadSqueueFixture(t))
+	assert.Equal(t, map[string]int{"g001": 1}, hm["alice"])
+	assert.NotContains(t, hm, "bob") // only running jobs are counted
 }
