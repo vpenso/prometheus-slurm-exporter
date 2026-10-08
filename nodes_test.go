@@ -16,21 +16,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNodesMetrics(t *testing.T) {
-	// Read the input data from a file
-	file, err := os.Open("test_data/sinfo.txt")
-	if err != nil {
-		t.Fatalf("Can not open test data: %v", err)
-	}
-	data, err := ioutil.ReadAll(file)
-	t.Logf("%+v", ParseNodesMetrics(data))
-}
-
-func TestNodesGetMetrics(t *testing.T) {
-	t.Logf("%+v", NodesGetMetrics())
+	nm := ParseNodesMetrics(loadSinfoFixture(t))
+	assert.Equal(t, 1.0, nm.alloc) // b001: ALLOCATED
+	assert.Equal(t, 0.0, nm.comp)
+	assert.Equal(t, 1.0, nm.down)  // g003: DOWN
+	assert.Equal(t, 1.0, nm.drain) // b003: MIXED+DRAIN
+	assert.Equal(t, 0.0, nm.err)
+	assert.Equal(t, 0.0, nm.fail)
+	assert.Equal(t, 2.0, nm.idle) // b002, g002: IDLE
+	assert.Equal(t, 0.0, nm.maint)
+	assert.Equal(t, 1.0, nm.mix) // g001: MIXED
+	assert.Equal(t, 0.0, nm.resv)
 }

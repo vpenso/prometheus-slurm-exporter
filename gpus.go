@@ -18,89 +18,88 @@ package main
 import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"io/ioutil"
-	"os/exec"
-	"strings"
-	"strconv"
+
+	"github.com/vpenso/prometheus-slurm-exporter/internal/slurmcli"
 )
 
+// GPUsMetrics holds per-GPU-type (e.g. "mi250", "a100", or "" for untyped
+// legacy GRES) allocation counts. Vendor is not special-cased here: AMD and
+// NVIDIA GPUs are both just typed Slurm GRES entries, so the same code path
+// handles both.
 type GPUsMetrics struct {
-	alloc       float64
-	idle        float64
-	total       float64
-	utilization float64
+	alloc       map[string]float64
+	idle        map[string]float64
+	total       map[string]float64
+	utilization map[string]float64
 }
 
 func GPUsGetMetrics() *GPUsMetrics {
-	return ParseGPUsMetrics()
-}
-
-func ParseAllocatedGPUs() float64 {
-	var num_gpus = 0.0
-
-	args := []string{"-a", "-X", "--format=Allocgres", "--state=RUNNING", "--noheader", "--parsable2"}
-	output := string(Execute("sacct", args))
-	if len(output) > 0 {
-		for _, line := range strings.Split(output, "\n") {
-			if len(line) > 0 {
-				line = strings.Trim(line, "\"")
-				descriptor := strings.TrimPrefix(line, "gpu:")
-				job_gpus, _ := strconv.ParseFloat(descriptor, 64)
-				num_gpus += job_gpus
-			}
-		}
-	}
-
-	return num_gpus
-}
-
-func ParseTotalGPUs() float64 {
-	var num_gpus = 0.0
-
-	args := []string{"-h", "-o \"%n %G\""}
-	output := string(Execute("sinfo", args))
-	if len(output) > 0 {
-		for _, line := range strings.Split(output, "\n") {
-			if len(line) > 0 {
-				line = strings.Trim(line, "\"")
-				descriptor := strings.Fields(line)[1]
-				descriptor = strings.TrimPrefix(descriptor, "gpu:")
-				descriptor = strings.Split(descriptor, "(")[0]
-				node_gpus, _ :=  strconv.ParseFloat(descriptor, 64)
-				num_gpus += node_gpus
-			}
-		}
-	}
-
-	return num_gpus
-}
-
-func ParseGPUsMetrics() *GPUsMetrics {
-	var gm GPUsMetrics
-	total_gpus := ParseTotalGPUs()
-	allocated_gpus := ParseAllocatedGPUs()
-	gm.alloc = allocated_gpus
-	gm.idle = total_gpus - allocated_gpus
-	gm.total = total_gpus
-	gm.utilization = allocated_gpus / total_gpus
-	return &gm
-}
-
-// Execute the sinfo command and return its output
-func Execute(command string, arguments []string) []byte {
-	cmd := exec.Command(command, arguments...)
-	stdout, err := cmd.StdoutPipe()
+	sinfo, err := SinfoData()
 	if err != nil {
-		log.Fatal(err)
+		log.Errorf("gpus: %v", err)
+		return emptyGPUsMetrics()
 	}
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
+	sacct, err := SacctData()
+	if err != nil {
+		log.Errorf("gpus: %v", err)
+		return emptyGPUsMetrics()
 	}
-	out, _ := ioutil.ReadAll(stdout)
-	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
+	return ParseGPUsMetrics(sinfo, sacct)
+}
+
+func emptyGPUsMetrics() *GPUsMetrics {
+	return &GPUsMetrics{
+		alloc:       map[string]float64{},
+		idle:        map[string]float64{},
+		total:       map[string]float64{},
+		utilization: map[string]float64{},
 	}
-	return out
+}
+
+// ParseTotalGPUs returns configured GPU counts per type, summed across all
+// nodes' `gres` field.
+func ParseTotalGPUs(sinfo *slurmcli.SinfoResponse) map[string]float64 {
+	totals := map[string]float64{}
+	for _, n := range sinfo.Nodes {
+		for _, g := range slurmcli.ParseGresString(n.Gres) {
+			if g.Kind != "gpu" {
+				continue
+			}
+			totals[g.Type] += float64(g.Count)
+		}
+	}
+	return totals
+}
+
+// ParseAllocatedGPUs returns allocated GPU counts per type, summed across
+// every currently running job's allocated GRES tres entries.
+func ParseAllocatedGPUs(sacct *slurmcli.SacctResponse) map[string]float64 {
+	allocated := map[string]float64{}
+	for _, j := range sacct.Jobs {
+		for _, g := range j.AllocatedGres() {
+			allocated[g.Type] += float64(g.Count)
+		}
+	}
+	return allocated
+}
+
+func ParseGPUsMetrics(sinfo *slurmcli.SinfoResponse, sacct *slurmcli.SacctResponse) *GPUsMetrics {
+	gm := emptyGPUsMetrics()
+	gm.total = ParseTotalGPUs(sinfo)
+	gm.alloc = ParseAllocatedGPUs(sacct)
+
+	for gpuType, total := range gm.total {
+		idle := total - gm.alloc[gpuType]
+		if idle < 0 {
+			log.Warnf("gpus: allocated GPU count for type %q exceeds total, clamping idle to 0", gpuType)
+			idle = 0
+		}
+		gm.idle[gpuType] = idle
+		if total > 0 {
+			gm.utilization[gpuType] = gm.alloc[gpuType] / total
+		}
+	}
+	return gm
 }
 
 /*
@@ -110,11 +109,12 @@ func Execute(command string, arguments []string) []byte {
  */
 
 func NewGPUsCollector() *GPUsCollector {
+	labels := []string{"gpu_type"}
 	return &GPUsCollector{
-		alloc: prometheus.NewDesc("slurm_gpus_alloc", "Allocated GPUs", nil, nil),
-		idle:  prometheus.NewDesc("slurm_gpus_idle", "Idle GPUs", nil, nil),
-		total: prometheus.NewDesc("slurm_gpus_total", "Total GPUs", nil, nil),
-		utilization: prometheus.NewDesc("slurm_gpus_utilization", "Total GPU utilization", nil, nil),
+		alloc:       prometheus.NewDesc("slurm_gpus_alloc", "Allocated GPUs", labels, nil),
+		idle:        prometheus.NewDesc("slurm_gpus_idle", "Idle GPUs", labels, nil),
+		total:       prometheus.NewDesc("slurm_gpus_total", "Total GPUs", labels, nil),
+		utilization: prometheus.NewDesc("slurm_gpus_utilization", "GPU allocation utilization (alloc/total)", labels, nil),
 	}
 }
 
@@ -134,8 +134,12 @@ func (cc *GPUsCollector) Describe(ch chan<- *prometheus.Desc) {
 }
 func (cc *GPUsCollector) Collect(ch chan<- prometheus.Metric) {
 	cm := GPUsGetMetrics()
-	ch <- prometheus.MustNewConstMetric(cc.alloc, prometheus.GaugeValue, cm.alloc)
-	ch <- prometheus.MustNewConstMetric(cc.idle, prometheus.GaugeValue, cm.idle)
-	ch <- prometheus.MustNewConstMetric(cc.total, prometheus.GaugeValue, cm.total)
-	ch <- prometheus.MustNewConstMetric(cc.utilization, prometheus.GaugeValue, cm.utilization)
+	for gpuType, total := range cm.total {
+		ch <- prometheus.MustNewConstMetric(cc.alloc, prometheus.GaugeValue, cm.alloc[gpuType], gpuType)
+		ch <- prometheus.MustNewConstMetric(cc.idle, prometheus.GaugeValue, cm.idle[gpuType], gpuType)
+		ch <- prometheus.MustNewConstMetric(cc.total, prometheus.GaugeValue, total, gpuType)
+		if total > 0 {
+			ch <- prometheus.MustNewConstMetric(cc.utilization, prometheus.GaugeValue, cm.utilization[gpuType], gpuType)
+		}
+	}
 }

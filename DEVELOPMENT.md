@@ -1,13 +1,25 @@
 # Development
 
 Setup the development environment on a node with access to the Slurm user
-command-line interface, in particular with the `sinfo`, `squeue`, and `sdiag`
-commands.
+command-line interface, in particular with the `sinfo`, `squeue`, `sacct`,
+`sdiag`, and `sshare` commands. `sinfo`, `squeue` and `sacct` must support
+`--json` (Slurm 23.02+); `sdiag` and `sshare` are still parsed as legacy
+text output (see the comments atop `scheduler.go`/`sshare.go`).
+
+Live Slurm access is only needed to exercise the `*GetMetrics` integration
+paths and to run the exporter binary itself - the unit test suite (`make
+test`) runs entirely against the JSON fixtures under `test_data/` and needs
+no Slurm installation.
+
+The optional AMD ROCm telemetry collector (`-rocm-acct`) additionally shells
+out to `amd-smi` (or `rocm-smi`, via `-rocm-smi-cmd`) on the node it runs
+on; neither binary is required to build or run the unit tests, only to
+exercise that collector live.
 
 ## Install Go from source
 
 ```bash
-export VERSION=1.15 OS=linux ARCH=amd64
+export VERSION=1.21 OS=linux ARCH=amd64
 wget https://dl.google.com/go/go$VERSION.$OS-$ARCH.tar.gz
 tar -xzvf go$VERSION.$OS-$ARCH.tar.gz
 export PATH=$PWD/go/bin:$PATH

@@ -16,14 +16,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
-	"io/ioutil"
-	"log"
-	"os/exec"
-	"regexp"
-	"sort"
-	"strconv"
 	"strings"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/log"
+
+	"github.com/vpenso/prometheus-slurm-exporter/internal/slurmcli"
 )
 
 type NodesMetrics struct {
@@ -40,91 +38,75 @@ type NodesMetrics struct {
 }
 
 func NodesGetMetrics() *NodesMetrics {
-	return ParseNodesMetrics(NodesData())
-}
-
-func RemoveDuplicates(s []string) []string {
-	m := map[string]bool{}
-	t := []string{}
-
-	// Walk through the slice 's' and for each value we haven't seen so far, append it to 't'.
-	for _, v := range s {
-		if _, seen := m[v]; !seen {
-			if len(v) > 0 {
-				t = append(t, v)
-				m[v] = true
-			}
-		}
+	sinfo, err := SinfoData()
+	if err != nil {
+		log.Errorf("nodes: %v", err)
+		return &NodesMetrics{}
 	}
-
-	return t
+	return ParseNodesMetrics(sinfo)
 }
 
-func ParseNodesMetrics(input []byte) *NodesMetrics {
+// classifyNodeState maps a node's --json state flag set (e.g.
+// ["MIXED","DRAIN"]) to this collector's single legacy bucket, in the same
+// priority order the old sinfo "%T"-prefix regexes used. Under the old text
+// format sinfo already emitted one composite state token per node; the
+// JSON state array can carry multiple flags, so ties are broken by this
+// fixed priority list rather than double-counting a node into two buckets.
+func classifyNodeState(flags []string) string {
+	joined := strings.ToLower(strings.Join(flags, ","))
+	switch {
+	case strings.Contains(joined, "alloc"):
+		return "alloc"
+	case strings.Contains(joined, "comp"):
+		return "comp"
+	case strings.Contains(joined, "down"):
+		return "down"
+	case strings.Contains(joined, "drain"):
+		return "drain"
+	case strings.Contains(joined, "fail"):
+		return "fail"
+	case strings.Contains(joined, "err"):
+		return "err"
+	case strings.Contains(joined, "idle"):
+		return "idle"
+	case strings.Contains(joined, "maint"):
+		return "maint"
+	case strings.Contains(joined, "mix"):
+		return "mix"
+	case strings.Contains(joined, "resv"), strings.Contains(joined, "reserved"):
+		return "resv"
+	default:
+		return ""
+	}
+}
+
+func ParseNodesMetrics(sinfo *slurmcli.SinfoResponse) *NodesMetrics {
 	var nm NodesMetrics
-	lines := strings.Split(string(input), "\n")
-
-	// Sort and remove all the duplicates from the 'sinfo' output
-	sort.Strings(lines)
-	lines_uniq := RemoveDuplicates(lines)
-
-	for _, line := range lines_uniq {
-		if strings.Contains(line, ",") {
-			split := strings.Split(line, ",")
-			count, _ := strconv.ParseFloat(strings.TrimSpace(split[0]), 64)
-			state := split[1]
-			alloc := regexp.MustCompile(`^alloc`)
-			comp := regexp.MustCompile(`^comp`)
-			down := regexp.MustCompile(`^down`)
-			drain := regexp.MustCompile(`^drain`)
-			fail := regexp.MustCompile(`^fail`)
-			err := regexp.MustCompile(`^err`)
-			idle := regexp.MustCompile(`^idle`)
-			maint := regexp.MustCompile(`^maint`)
-			mix := regexp.MustCompile(`^mix`)
-			resv := regexp.MustCompile(`^res`)
-			switch {
-			case alloc.MatchString(state) == true:
-				nm.alloc += count
-			case comp.MatchString(state) == true:
-				nm.comp += count
-			case down.MatchString(state) == true:
-				nm.down += count
-			case drain.MatchString(state) == true:
-				nm.drain += count
-			case fail.MatchString(state) == true:
-				nm.fail += count
-			case err.MatchString(state) == true:
-				nm.err += count
-			case idle.MatchString(state) == true:
-				nm.idle += count
-			case maint.MatchString(state) == true:
-				nm.maint += count
-			case mix.MatchString(state) == true:
-				nm.mix += count
-			case resv.MatchString(state) == true:
-				nm.resv += count
-			}
+	for _, n := range sinfo.Nodes {
+		switch classifyNodeState(n.State) {
+		case "alloc":
+			nm.alloc++
+		case "comp":
+			nm.comp++
+		case "down":
+			nm.down++
+		case "drain":
+			nm.drain++
+		case "err":
+			nm.err++
+		case "fail":
+			nm.fail++
+		case "idle":
+			nm.idle++
+		case "maint":
+			nm.maint++
+		case "mix":
+			nm.mix++
+		case "resv":
+			nm.resv++
 		}
 	}
 	return &nm
-}
-
-// Execute the sinfo command and return its output
-func NodesData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-o %D,%T")
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
-	}
-	out, _ := ioutil.ReadAll(stdout)
-	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
-	}
-	return out
 }
 
 /*

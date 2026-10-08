@@ -1,0 +1,44 @@
+{
+  "jobs": [
+    {
+      "job_id": 201,
+      "state": ["RUNNING"],
+      "tres": {
+        "allocated": [
+          {"type": "cpu", "name": "cpu", "count": 16},
+          {"type": "gres", "name": "gpu:mi250", "count": 2}
+        ]
+      }
+    },
+    {
+      "job_id": 202,
+      "state": ["RUNNING"],
+      "tres": {
+        "allocated": [
+          {"type": "cpu", "name": "cpu", "count": 8},
+          {"type": "gres", "name": "gpu:mi250", "count": 1}
+        ]
+      }
+    },
+    {
+      "job_id": 203,
+      "state": ["RUNNING"],
+      "tres": {
+        "allocated": [
+          {"type": "cpu", "name": "cpu", "count": 32},
+          {"type": "gres", "name": "gpu:a100", "count": 4}
+        ]
+      }
+    },
+    {
+      "job_id": 204,
+      "state": ["RUNNING"],
+      "tres": {
+        "allocated": [
+          {"type": "cpu", "name": "cpu", "count": 4},
+          {"type": "gres", "name": "gpu", "count": 1}
+        ]
+      }
+    }
+  ]
+}

@@ -13,74 +13,81 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+// This collector intentionally still parses sshare's legacy pipe-delimited
+// text output (-P) rather than `sshare --json`, unlike the sinfo/squeue
+// -based collectors elsewhere in this project. sshare's output format here
+// is simple and has been stable, and its --json schema was not verified
+// against the project's target Slurm version floor at the time of the
+// JSON migration - treat this as a documented, lower-risk exception rather
+// than an oversight. Revisit if sshare's text format is ever seen to drift.
 package main
 
 import (
-        "io/ioutil"
-        "os/exec"
-        "log"
-        "strings"
-        "strconv"
-        "github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus"
+	"io/ioutil"
+	"log"
+	"os/exec"
+	"strconv"
+	"strings"
 )
 
 func FairShareData() []byte {
-        cmd := exec.Command( "sshare", "-n", "-P", "-o", "account,fairshare" )
-        stdout, err := cmd.StdoutPipe()
-        if err != nil {
-                log.Fatal(err)
-        }
-        if err := cmd.Start(); err != nil {
-                log.Fatal(err)
-        }
-        out, _ := ioutil.ReadAll(stdout)
-        if err := cmd.Wait(); err != nil {
-                log.Fatal(err)
-        }
-        return out
+	cmd := exec.Command("sshare", "-n", "-P", "-o", "account,fairshare")
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := cmd.Start(); err != nil {
+		log.Fatal(err)
+	}
+	out, _ := ioutil.ReadAll(stdout)
+	if err := cmd.Wait(); err != nil {
+		log.Fatal(err)
+	}
+	return out
 }
 
 type FairShareMetrics struct {
-        fairshare float64
+	fairshare float64
 }
 
 func ParseFairShareMetrics() map[string]*FairShareMetrics {
-        accounts := make(map[string]*FairShareMetrics)
-        lines := strings.Split(string(FairShareData()), "\n")
-        for _, line := range lines {
-                if ! strings.HasPrefix(line,"  ") {
-                        if strings.Contains(line,"|") {
-                                account := strings.Trim(strings.Split(line,"|")[0]," ")
-                                _,key := accounts[account]
-                                if !key {
-                                        accounts[account] = &FairShareMetrics{0}
-                                }
-                                fairshare,_ := strconv.ParseFloat(strings.Split(line,"|")[1],64)
-                                accounts[account].fairshare = fairshare
-                        }
-                }
-        }
-        return accounts
+	accounts := make(map[string]*FairShareMetrics)
+	lines := strings.Split(string(FairShareData()), "\n")
+	for _, line := range lines {
+		if !strings.HasPrefix(line, "  ") {
+			if strings.Contains(line, "|") {
+				account := strings.Trim(strings.Split(line, "|")[0], " ")
+				_, key := accounts[account]
+				if !key {
+					accounts[account] = &FairShareMetrics{0}
+				}
+				fairshare, _ := strconv.ParseFloat(strings.Split(line, "|")[1], 64)
+				accounts[account].fairshare = fairshare
+			}
+		}
+	}
+	return accounts
 }
 
 type FairShareCollector struct {
-        fairshare *prometheus.Desc
+	fairshare *prometheus.Desc
 }
 
 func NewFairShareCollector() *FairShareCollector {
-        labels := []string{"account"}
-        return &FairShareCollector{
-                fairshare: prometheus.NewDesc("slurm_account_fairshare","FairShare for account" , labels,nil),
-        }
+	labels := []string{"account"}
+	return &FairShareCollector{
+		fairshare: prometheus.NewDesc("slurm_account_fairshare", "FairShare for account", labels, nil),
+	}
 }
 
 func (fsc *FairShareCollector) Describe(ch chan<- *prometheus.Desc) {
-        ch <- fsc.fairshare
+	ch <- fsc.fairshare
 }
 
 func (fsc *FairShareCollector) Collect(ch chan<- prometheus.Metric) {
-        fsm := ParseFairShareMetrics()
-        for f := range fsm {
-                ch <- prometheus.MustNewConstMetric(fsc.fairshare, prometheus.GaugeValue, fsm[f].fairshare, f)
-        }
+	fsm := ParseFairShareMetrics()
+	for f := range fsm {
+		ch <- prometheus.MustNewConstMetric(fsc.fairshare, prometheus.GaugeValue, fsm[f].fairshare, f)
+	}
 }

@@ -13,6 +13,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+// This collector intentionally still parses sdiag's legacy free-text report
+// rather than `sdiag --json`, unlike the sinfo/squeue-based collectors
+// elsewhere in this project. sdiag's JSON field names for the scheduler
+// diagnostics it reports (cycle timings, backfill stats, etc.) were not
+// verified against the project's target Slurm version floor at the time of
+// the JSON migration - treat this as a documented, lower-risk exception
+// rather than an oversight. Revisit once sdiag --json's schema is
+// confirmed against a live target cluster.
 package main
 
 import (

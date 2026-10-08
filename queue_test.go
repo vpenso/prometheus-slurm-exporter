@@ -16,21 +16,40 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
+	"encoding/json"
 	"io/ioutil"
-	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/vpenso/prometheus-slurm-exporter/internal/slurmcli"
 )
 
-func TestParseQueueMetrics(t *testing.T) {
-	// Read the input data from a file
-	file, err := os.Open("test_data/squeue.txt")
+func loadSqueueFixture(t *testing.T) *slurmcli.SqueueResponse {
+	t.Helper()
+	data, err := ioutil.ReadFile("test_data/squeue.json")
 	if err != nil {
 		t.Fatalf("Can not open test data: %v", err)
 	}
-	data, err := ioutil.ReadAll(file)
-	t.Logf("%+v", ParseQueueMetrics(data))
+	var resp slurmcli.SqueueResponse
+	if err := json.Unmarshal(data, &resp); err != nil {
+		t.Fatalf("Can not parse test data: %v", err)
+	}
+	return &resp
 }
 
-func TestQueueGetMetrics(t *testing.T) {
-	t.Logf("%+v", QueueGetMetrics())
+func TestParseQueueMetrics(t *testing.T) {
+	qm := ParseQueueMetrics(loadSqueueFixture(t))
+	assert.Equal(t, 2.0, qm.pending)
+	assert.Equal(t, 1.0, qm.pending_dep)
+	assert.Equal(t, 1.0, qm.running)
+	assert.Equal(t, 1.0, qm.suspended)
+	assert.Equal(t, 1.0, qm.cancelled)
+	assert.Equal(t, 0.0, qm.completing)
+	assert.Equal(t, 0.0, qm.completed)
+	assert.Equal(t, 0.0, qm.configuring)
+	assert.Equal(t, 0.0, qm.failed)
+	assert.Equal(t, 0.0, qm.timeout)
+	assert.Equal(t, 0.0, qm.preempted)
+	assert.Equal(t, 0.0, qm.node_fail)
 }

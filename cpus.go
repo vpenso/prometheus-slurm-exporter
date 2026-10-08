@@ -17,11 +17,9 @@ package main
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"io/ioutil"
-	"log"
-	"os/exec"
-	"strconv"
-	"strings"
+	"github.com/prometheus/common/log"
+
+	"github.com/vpenso/prometheus-slurm-exporter/internal/slurmcli"
 )
 
 type CPUsMetrics struct {
@@ -32,36 +30,23 @@ type CPUsMetrics struct {
 }
 
 func CPUsGetMetrics() *CPUsMetrics {
-	return ParseCPUsMetrics(CPUsData())
+	sinfo, err := SinfoData()
+	if err != nil {
+		log.Errorf("cpus: %v", err)
+		return &CPUsMetrics{}
+	}
+	return ParseCPUsMetrics(sinfo)
 }
 
-func ParseCPUsMetrics(input []byte) *CPUsMetrics {
+func ParseCPUsMetrics(sinfo *slurmcli.SinfoResponse) *CPUsMetrics {
 	var cm CPUsMetrics
-	if strings.Contains(string(input), "/") {
-		splitted := strings.Split(strings.TrimSpace(string(input)), "/")
-		cm.alloc, _ = strconv.ParseFloat(splitted[0], 64)
-		cm.idle, _ = strconv.ParseFloat(splitted[1], 64)
-		cm.other, _ = strconv.ParseFloat(splitted[2], 64)
-		cm.total, _ = strconv.ParseFloat(splitted[3], 64)
+	for _, n := range sinfo.Nodes {
+		cm.alloc += float64(n.AllocCPUs)
+		cm.idle += float64(n.IdleCPUs)
+		cm.other += float64(n.OtherCPUs())
+		cm.total += float64(n.CPUs)
 	}
 	return &cm
-}
-
-// Execute the sinfo command and return its output
-func CPUsData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-o %C")
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := cmd.Start(); err != nil {
-		log.Fatal(err)
-	}
-	out, _ := ioutil.ReadAll(stdout)
-	if err := cmd.Wait(); err != nil {
-		log.Fatal(err)
-	}
-	return out
 }
 
 /*

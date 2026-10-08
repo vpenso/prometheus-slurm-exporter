@@ -16,78 +16,51 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 package main
 
 import (
-	"log"
-	"os/exec"
-	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/log"
+
+	"github.com/vpenso/prometheus-slurm-exporter/internal/slurmcli"
 )
 
 // NodeMetrics stores metrics for each node
 type NodeMetrics struct {
-	memAlloc uint64
-	memTotal uint64
-	cpuAlloc uint64
-	cpuIdle  uint64
-	cpuOther uint64
-	cpuTotal uint64
+	memAlloc   uint64
+	memTotal   uint64
+	cpuAlloc   uint64
+	cpuIdle    uint64
+	cpuOther   uint64
+	cpuTotal   uint64
 	nodeStatus string
 }
 
 func NodeGetMetrics() map[string]*NodeMetrics {
-	return ParseNodeMetrics(NodeData())
-}
-
-// ParseNodeMetrics takes the output of sinfo with node data
-// It returns a map of metrics per node
-func ParseNodeMetrics(input []byte) map[string]*NodeMetrics {
-	nodes := make(map[string]*NodeMetrics)
-	lines := strings.Split(string(input), "\n")
-
-	// Sort and remove all the duplicates from the 'sinfo' output
-	sort.Strings(lines)
-	linesUniq := RemoveDuplicates(lines)
-
-	for _, line := range linesUniq {
-		node := strings.Fields(line)
-		nodeName := node[0]
-		nodeStatus := node[4] // mixed, allocated, etc.
-
-		nodes[nodeName] = &NodeMetrics{0, 0, 0, 0, 0, 0, ""}
-
-		memAlloc, _ := strconv.ParseUint(node[1], 10, 64)
-		memTotal, _ := strconv.ParseUint(node[2], 10, 64)
-
-
-		cpuInfo := strings.Split(node[3], "/")
-		cpuAlloc, _ := strconv.ParseUint(cpuInfo[0], 10, 64)
-		cpuIdle, _ := strconv.ParseUint(cpuInfo[1], 10, 64)
-		cpuOther, _ := strconv.ParseUint(cpuInfo[2], 10, 64)
-		cpuTotal, _ := strconv.ParseUint(cpuInfo[3], 10, 64)
-
-		nodes[nodeName].memAlloc = memAlloc
-		nodes[nodeName].memTotal = memTotal
-		nodes[nodeName].cpuAlloc = cpuAlloc
-		nodes[nodeName].cpuIdle = cpuIdle
-		nodes[nodeName].cpuOther = cpuOther
-		nodes[nodeName].cpuTotal = cpuTotal
-		nodes[nodeName].nodeStatus = nodeStatus
-	}
-
-	return nodes
-}
-
-// NodeData executes the sinfo command to get data for each node
-// It returns the output of the sinfo command
-func NodeData() []byte {
-	cmd := exec.Command("sinfo", "-h", "-N", "-O", "NodeList,AllocMem,Memory,CPUsState,StateLong")
-	out, err := cmd.Output()
+	sinfo, err := SinfoData()
 	if err != nil {
-		log.Fatal(err)
+		log.Errorf("node: %v", err)
+		return map[string]*NodeMetrics{}
 	}
-	return out
+	return ParseNodeMetrics(sinfo)
+}
+
+// ParseNodeMetrics takes the parsed `sinfo --json` response and returns a
+// map of metrics per node. Unlike the old text-based sinfo output, --json
+// already returns exactly one entry per node, so no dedup pass is needed.
+func ParseNodeMetrics(sinfo *slurmcli.SinfoResponse) map[string]*NodeMetrics {
+	nodes := make(map[string]*NodeMetrics)
+	for _, n := range sinfo.Nodes {
+		nodes[n.Name] = &NodeMetrics{
+			memAlloc:   uint64(n.AllocMemory),
+			memTotal:   uint64(n.RealMemory),
+			cpuAlloc:   uint64(n.AllocCPUs),
+			cpuIdle:    uint64(n.IdleCPUs),
+			cpuOther:   uint64(n.OtherCPUs()),
+			cpuTotal:   uint64(n.CPUs),
+			nodeStatus: strings.ToLower(strings.Join(n.State, "+")),
+		}
+	}
+	return nodes
 }
 
 type NodeCollector struct {
@@ -102,7 +75,7 @@ type NodeCollector struct {
 // NewNodeCollector creates a Prometheus collector to keep all our stats in
 // It returns a set of collections for consumption
 func NewNodeCollector() *NodeCollector {
-	labels := []string{"node","status"}
+	labels := []string{"node", "status"}
 
 	return &NodeCollector{
 		cpuAlloc: prometheus.NewDesc("slurm_node_cpu_alloc", "Allocated CPUs per node", labels, nil),
@@ -128,7 +101,7 @@ func (nc *NodeCollector) Collect(ch chan<- prometheus.Metric) {
 	nodes := NodeGetMetrics()
 	for node := range nodes {
 		ch <- prometheus.MustNewConstMetric(nc.cpuAlloc, prometheus.GaugeValue, float64(nodes[node].cpuAlloc), node, nodes[node].nodeStatus)
-		ch <- prometheus.MustNewConstMetric(nc.cpuIdle,  prometheus.GaugeValue, float64(nodes[node].cpuIdle),  node, nodes[node].nodeStatus)
+		ch <- prometheus.MustNewConstMetric(nc.cpuIdle, prometheus.GaugeValue, float64(nodes[node].cpuIdle), node, nodes[node].nodeStatus)
 		ch <- prometheus.MustNewConstMetric(nc.cpuOther, prometheus.GaugeValue, float64(nodes[node].cpuOther), node, nodes[node].nodeStatus)
 		ch <- prometheus.MustNewConstMetric(nc.cpuTotal, prometheus.GaugeValue, float64(nodes[node].cpuTotal), node, nodes[node].nodeStatus)
 		ch <- prometheus.MustNewConstMetric(nc.memAlloc, prometheus.GaugeValue, float64(nodes[node].memAlloc), node, nodes[node].nodeStatus)

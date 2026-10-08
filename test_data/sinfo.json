@@ -1,0 +1,76 @@
+{
+  "nodes": [
+    {
+      "name": "b001",
+      "state": ["ALLOCATED"],
+      "cpus": 32,
+      "alloc_cpus": 32,
+      "idle_cpus": 0,
+      "real_memory": 386000,
+      "alloc_memory": 327680,
+      "gres": "",
+      "gres_used": "",
+      "partitions": ["batch"]
+    },
+    {
+      "name": "b002",
+      "state": ["IDLE"],
+      "cpus": 32,
+      "alloc_cpus": 0,
+      "idle_cpus": 32,
+      "real_memory": 386000,
+      "alloc_memory": 0,
+      "gres": "",
+      "gres_used": "",
+      "partitions": ["batch"]
+    },
+    {
+      "name": "b003",
+      "state": ["MIXED", "DRAIN"],
+      "cpus": 16,
+      "alloc_cpus": 4,
+      "idle_cpus": 12,
+      "real_memory": 193000,
+      "alloc_memory": 24000,
+      "gres": "",
+      "gres_used": "",
+      "partitions": ["batch"]
+    },
+    {
+      "name": "g001",
+      "state": ["MIXED"],
+      "cpus": 64,
+      "alloc_cpus": 32,
+      "idle_cpus": 32,
+      "real_memory": 512000,
+      "alloc_memory": 128000,
+      "gres": "gpu:mi250:8",
+      "gres_used": "gpu:mi250:3(IDX:0-2)",
+      "partitions": ["gpu-amd"]
+    },
+    {
+      "name": "g002",
+      "state": ["IDLE"],
+      "cpus": 64,
+      "alloc_cpus": 0,
+      "idle_cpus": 64,
+      "real_memory": 512000,
+      "alloc_memory": 0,
+      "gres": "gpu:a100:4",
+      "gres_used": "",
+      "partitions": ["gpu-nvidia"]
+    },
+    {
+      "name": "g003",
+      "state": ["DOWN"],
+      "cpus": 32,
+      "alloc_cpus": 0,
+      "idle_cpus": 0,
+      "real_memory": 256000,
+      "alloc_memory": 0,
+      "gres": "gpu:2",
+      "gres_used": "",
+      "partitions": ["gpu-legacy"]
+    }
+  ]
+}

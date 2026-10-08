@@ -1,0 +1,49 @@
+{
+  "jobs": [
+    {
+      "job_id": 101,
+      "user_name": "alice",
+      "account": "physics",
+      "partition": "batch",
+      "job_state": ["PENDING"],
+      "state_reason": "Dependency",
+      "cpus": 4
+    },
+    {
+      "job_id": 102,
+      "user_name": "bob",
+      "account": "physics",
+      "partition": "batch",
+      "job_state": ["PENDING"],
+      "state_reason": "Resources",
+      "cpus": 8
+    },
+    {
+      "job_id": 103,
+      "user_name": "alice",
+      "account": "chemistry",
+      "partition": "gpu-amd",
+      "job_state": ["RUNNING"],
+      "state_reason": "None",
+      "cpus": 16
+    },
+    {
+      "job_id": 104,
+      "user_name": "carol",
+      "account": "chemistry",
+      "partition": "batch",
+      "job_state": ["SUSPENDED"],
+      "state_reason": "None",
+      "cpus": 2
+    },
+    {
+      "job_id": 105,
+      "user_name": "bob",
+      "account": "physics",
+      "partition": "batch",
+      "job_state": ["CANCELLED"],
+      "state_reason": "None",
+      "cpus": 4
+    }
+  ]
+}

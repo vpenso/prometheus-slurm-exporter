@@ -1,4 +1,4 @@
-/* Copyright 2017 Victor Penso, Matteo Dessalvi
+/* Copyright 2026 prometheus-slurm-exporter contributors
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -22,26 +22,24 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/vpenso/prometheus-slurm-exporter/internal/slurmcli"
+	"github.com/vpenso/prometheus-slurm-exporter/internal/smicli"
 )
 
-func loadSinfoFixture(t *testing.T) *slurmcli.SinfoResponse {
-	t.Helper()
-	data, err := ioutil.ReadFile("test_data/sinfo.json")
+func TestParseROCmMetricFixture(t *testing.T) {
+	data, err := ioutil.ReadFile("test_data/rocm_metric.json")
 	if err != nil {
 		t.Fatalf("Can not open test data: %v", err)
 	}
-	var resp slurmcli.SinfoResponse
-	if err := json.Unmarshal(data, &resp); err != nil {
+	var devices []smicli.ROCmDevice
+	if err := json.Unmarshal(data, &devices); err != nil {
 		t.Fatalf("Can not parse test data: %v", err)
 	}
-	return &resp
-}
 
-func TestCPUsMetrics(t *testing.T) {
-	cm := ParseCPUsMetrics(loadSinfoFixture(t))
-	assert.Equal(t, 68.0, cm.alloc)
-	assert.Equal(t, 140.0, cm.idle)
-	assert.Equal(t, 32.0, cm.other)
-	assert.Equal(t, 240.0, cm.total)
+	assert.Len(t, devices, 2)
+	assert.Equal(t, 0, devices[0].GPU)
+	assert.Equal(t, 87.5, devices[0].Usage.GfxActivity)
+	assert.Equal(t, uint64(34359738368), devices[0].Mem.Used)
+	assert.Equal(t, uint64(68719476736), devices[0].Mem.Total)
+	assert.Equal(t, 62.0, devices[0].Temperature.Edge)
+	assert.Equal(t, 310.2, devices[0].Power.Socket)
 }

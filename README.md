@@ -2,6 +2,8 @@
 
 Prometheus collector and exporter for metrics extracted from the [Slurm](https://slurm.schedmd.com/overview.html) resource scheduling system.
 
+**Minimum Slurm version: 23.02.** As of this version the exporter parses `sinfo --json`, `squeue --json` and `sacct --json` output rather than hand-parsed positional text fields, since Slurm's text layouts are not a stable API and have changed between releases (see the former "State of the GPUs" caveat about issue #38 below, now fixed by this change). The `sdiag`/`sshare`-based collectors (scheduler and fair-share metrics) still parse legacy text output - see the comments at the top of `scheduler.go`/`sshare.go`.
+
 ## Exported Metrics
 
 ### State of the CPUs
@@ -17,9 +19,11 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 ### State of the GPUs
 
 * **Allocated**: GPUs which have been allocated to a job.
-* **Other**: GPUs which are unavailable for use at the moment.
+* **Idle**: GPUs not currently allocated to a job.
 * **Total**: total number of GPUs.
-* **Utilization**: total GPU utiliazation on the cluster.
+* **Utilization**: allocation ratio (alloc/total) per GPU type.
+
+All four metrics carry a **`gpu_type`** label (e.g. `mi250`, `mi300x`, `a100`, `h100`, or an empty string for untyped/legacy GRES configurations), extracted from Slurm's own GRES descriptor strings (`gpu:<type>:<count>`). This works identically for AMD/ROCm and NVIDIA GPUs - and any other vendor - since Slurm's GRES abstraction is vendor-agnostic; the exporter never talks to vendor tooling for these metrics, only to Slurm itself.
 
 - Information extracted from the SLURM [**sinfo**](https://slurm.schedmd.com/sinfo.html) and [**sacct**](https://slurm.schedmd.com/sacct.html) command.
 - [Slurm GRES scheduling](https://slurm.schedmd.com/gres.html)
@@ -28,8 +32,19 @@ Prometheus collector and exporter for metrics extracted from the [Slurm](https:/
 
 Be aware that:
 
-* According to issue #38, users reported that newer version of Slurm provides slightly different output and thus GPUs accounting may not work properly.
+* Issue #38 (newer Slurm releases produced slightly different `sinfo`/`sacct` output than the old text parser expected, especially for typed GRES like `gpu:mi250:2`) is fixed as of the JSON migration described above - the parser now reads `gres`/`gres_used`/`tres.allocated` from `--json` output and correctly splits `kind:type:count`, instead of assuming every GRES entry had exactly two colon-delimited fields.
 * Users who do not have GPUs and/or do not have accounting activated may want to keep GPUs accounting **off** (see issue #45).
+
+### AMD ROCm GPU Telemetry
+
+In addition to the GRES-based scheduling-occupancy metrics above, the exporter can optionally report **real device-level telemetry** for AMD/ROCm GPUs, read directly from `amd-smi` (or `rocm-smi`) on the node it runs on:
+
+* `slurm_rocm_gpu_utilization_percent{node, gpu}`
+* `slurm_rocm_gpu_memory_used_bytes{node, gpu}` / `slurm_rocm_gpu_memory_total_bytes{node, gpu}`
+* `slurm_rocm_gpu_temperature_celsius{node, gpu, sensor}` (`sensor` is `edge`, `junction`, or `memory`)
+* `slurm_rocm_gpu_power_watts{node, gpu}`
+
+Enable it with `-rocm-acct` (default off); `-rocm-smi-cmd` (default `amd-smi`) selects the CLI to invoke, e.g. `-rocm-smi-cmd=rocm-smi` on older fleets. **These metrics are node-local hardware telemetry, not job-scheduling data** - there is no `job_id` label and no cross-reference to Slurm's GRES allocation, so run this collector as one exporter instance per GPU node rather than expecting it from the cluster-wide instance that serves the metrics above. This is AMD/ROCm-specific by design; NVIDIA GPUs remain covered only by the vendor-agnostic GRES metrics above.
 
 ### State of the Nodes
 
@@ -56,7 +71,7 @@ Since version **0.18**, the following information are also extracted and exporte
 * Memory: _allocated_ and in _total_.
 * Labels: hostname and its Slurm status (e.g. _idle_, _mix_, _allocated_, _draining_, etc.).
 
-See the related [test data](https://github.com/vpenso/prometheus-slurm-exporter/blob/master/test_data/sinfo_mem.txt) to check the format of the information extracted from Slurm.
+See the related [test data](test_data/sinfo.json) to check the format of the information extracted from Slurm.
 
 ### Status of the Jobs
 
@@ -85,7 +100,9 @@ See the related [test data](https://github.com/vpenso/prometheus-slurm-exporter/
 The following information about jobs are also extracted via [squeue](https://slurm.schedmd.com/squeue.html):
 
 * **Running/Pending/Suspended** jobs per SLURM Account.
+* **Running/Pending** CPUs per SLURM Account.
 * **Running/Pending/Suspended** jobs per SLURM User.
+* **Running/Pending** CPUs per SLURM User.
 
 ### Scheduler Information
 
@@ -115,6 +132,13 @@ counted with this parameter almost always indicates three issues:
 Collect _share_ statistics for every Slurm account. Refer to the [manpage of the sshare command](https://slurm.schedmd.com/sshare.html) to get more information.
 
 ## Installation
+
+* Download the source for the latest release, **[0.22](https://github.com/SilasMarner/prometheus-slurm-exporter/releases/tag/0.22)** (requires Slurm 23.02+, see the minimum version note above), or clone `master` for the latest development version:
+
+  ```bash
+  git clone --branch 0.22 https://github.com/SilasMarner/prometheus-slurm-exporter.git
+  cd prometheus-slurm-exporter
+  ```
 
 * Read [DEVELOPMENT.md](DEVELOPMENT.md) in order to build the Prometheus Slurm Exporter. After a successful build copy the executable
 `bin/prometheus-slurm-exporter` to a node with access to the Slurm command-line interface.
