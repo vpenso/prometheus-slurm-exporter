@@ -33,4 +33,5 @@ func TestNodesMetrics(t *testing.T) {
 	assert.Equal(t, 0.0, nm.maint)
 	assert.Equal(t, 1.0, nm.mix) // g001: MIXED
 	assert.Equal(t, 0.0, nm.resv)
+	assert.Equal(t, 1.0, nm.plnd) // p001: IDLE+PLANNED (planned wins over idle)
 }

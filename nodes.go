@@ -35,6 +35,7 @@ type NodesMetrics struct {
 	maint float64
 	mix   float64
 	resv  float64
+	plnd  float64
 }
 
 func NodesGetMetrics() *NodesMetrics {
@@ -67,6 +68,8 @@ func classifyNodeState(flags []string) string {
 		return "fail"
 	case strings.Contains(joined, "err"):
 		return "err"
+	case strings.Contains(joined, "plan"):
+		return "plnd"
 	case strings.Contains(joined, "idle"):
 		return "idle"
 	case strings.Contains(joined, "maint"):
@@ -104,6 +107,8 @@ func ParseNodesMetrics(sinfo *slurmcli.SinfoResponse) *NodesMetrics {
 			nm.mix++
 		case "resv":
 			nm.resv++
+		case "plnd":
+			nm.plnd++
 		}
 	}
 	return &nm
@@ -127,6 +132,7 @@ func NewNodesCollector() *NodesCollector {
 		maint: prometheus.NewDesc("slurm_nodes_maint", "Maint nodes", nil, nil),
 		mix:   prometheus.NewDesc("slurm_nodes_mix", "Mix nodes", nil, nil),
 		resv:  prometheus.NewDesc("slurm_nodes_resv", "Reserved nodes", nil, nil),
+		plnd:  prometheus.NewDesc("slurm_nodes_plnd", "Planned nodes", nil, nil),
 	}
 }
 
@@ -141,6 +147,7 @@ type NodesCollector struct {
 	maint *prometheus.Desc
 	mix   *prometheus.Desc
 	resv  *prometheus.Desc
+	plnd  *prometheus.Desc
 }
 
 // Send all metric descriptions
@@ -155,6 +162,7 @@ func (nc *NodesCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- nc.maint
 	ch <- nc.mix
 	ch <- nc.resv
+	ch <- nc.plnd
 }
 func (nc *NodesCollector) Collect(ch chan<- prometheus.Metric) {
 	nm := NodesGetMetrics()
@@ -168,4 +176,5 @@ func (nc *NodesCollector) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(nc.maint, prometheus.GaugeValue, nm.maint)
 	ch <- prometheus.MustNewConstMetric(nc.mix, prometheus.GaugeValue, nm.mix)
 	ch <- prometheus.MustNewConstMetric(nc.resv, prometheus.GaugeValue, nm.resv)
+	ch <- prometheus.MustNewConstMetric(nc.plnd, prometheus.GaugeValue, nm.plnd)
 }
