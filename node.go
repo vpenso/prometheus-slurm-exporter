@@ -24,6 +24,13 @@ import (
 	"github.com/vpenso/prometheus-slurm-exporter/internal/slurmcli"
 )
 
+// NodeGpuMetrics holds per-GPU-type counts for one node.
+type NodeGpuMetrics struct {
+	gpuType string
+	total   uint64
+	alloc   uint64
+}
+
 // NodeMetrics stores metrics for each node
 type NodeMetrics struct {
 	memAlloc   uint64
@@ -33,6 +40,8 @@ type NodeMetrics struct {
 	cpuOther   uint64
 	cpuTotal   uint64
 	nodeStatus string
+	partitions string
+	gpus       []NodeGpuMetrics
 }
 
 func NodeGetMetrics() map[string]*NodeMetrics {
@@ -58,9 +67,32 @@ func ParseNodeMetrics(sinfo *slurmcli.SinfoResponse) map[string]*NodeMetrics {
 			cpuOther:   uint64(n.OtherCPUs()),
 			cpuTotal:   uint64(n.CPUs),
 			nodeStatus: strings.ToLower(strings.Join(n.State, "+")),
+			partitions: strings.Join(n.Partitions, ","),
+			gpus:       parseNodeGpus(n.Gres, n.GresUsed),
 		}
 	}
 	return nodes
+}
+
+// parseNodeGpus pairs the total and used GRES descriptor strings of a node
+// into per-type GPU counts, e.g. gres "gpu:mi250:8" with gres_used
+// "gpu:mi250:3(IDX:0-2)" yields one {mi250, 8, 3} entry.
+func parseNodeGpus(gres, gresUsed string) []NodeGpuMetrics {
+	var gpus []NodeGpuMetrics
+	for _, total := range slurmcli.ParseGresString(gres) {
+		if total.Kind != "gpu" {
+			continue
+		}
+		var alloc int64
+		for _, used := range slurmcli.ParseGresString(gresUsed) {
+			if used.Kind == total.Kind && used.Type == total.Type {
+				alloc = used.Count
+				break
+			}
+		}
+		gpus = append(gpus, NodeGpuMetrics{gpuType: total.Type, total: uint64(total.Count), alloc: uint64(alloc)})
+	}
+	return gpus
 }
 
 type NodeCollector struct {
@@ -70,12 +102,15 @@ type NodeCollector struct {
 	cpuTotal *prometheus.Desc
 	memAlloc *prometheus.Desc
 	memTotal *prometheus.Desc
+	gpuAlloc *prometheus.Desc
+	gpuTotal *prometheus.Desc
 }
 
 // NewNodeCollector creates a Prometheus collector to keep all our stats in
 // It returns a set of collections for consumption
 func NewNodeCollector() *NodeCollector {
-	labels := []string{"node", "status"}
+	labels := []string{"node", "status", "partition"}
+	gpuLabels := []string{"node", "status", "gpu_type"}
 
 	return &NodeCollector{
 		cpuAlloc: prometheus.NewDesc("slurm_node_cpu_alloc", "Allocated CPUs per node", labels, nil),
@@ -84,6 +119,8 @@ func NewNodeCollector() *NodeCollector {
 		cpuTotal: prometheus.NewDesc("slurm_node_cpu_total", "Total CPUs per node", labels, nil),
 		memAlloc: prometheus.NewDesc("slurm_node_mem_alloc", "Allocated memory per node", labels, nil),
 		memTotal: prometheus.NewDesc("slurm_node_mem_total", "Total memory per node", labels, nil),
+		gpuAlloc: prometheus.NewDesc("slurm_node_gpu_alloc", "Allocated GPUs per node", gpuLabels, nil),
+		gpuTotal: prometheus.NewDesc("slurm_node_gpu_total", "Total GPUs per node", gpuLabels, nil),
 	}
 }
 
@@ -95,16 +132,22 @@ func (nc *NodeCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- nc.cpuTotal
 	ch <- nc.memAlloc
 	ch <- nc.memTotal
+	ch <- nc.gpuAlloc
+	ch <- nc.gpuTotal
 }
 
 func (nc *NodeCollector) Collect(ch chan<- prometheus.Metric) {
 	nodes := NodeGetMetrics()
 	for node := range nodes {
-		ch <- prometheus.MustNewConstMetric(nc.cpuAlloc, prometheus.GaugeValue, float64(nodes[node].cpuAlloc), node, nodes[node].nodeStatus)
-		ch <- prometheus.MustNewConstMetric(nc.cpuIdle, prometheus.GaugeValue, float64(nodes[node].cpuIdle), node, nodes[node].nodeStatus)
-		ch <- prometheus.MustNewConstMetric(nc.cpuOther, prometheus.GaugeValue, float64(nodes[node].cpuOther), node, nodes[node].nodeStatus)
-		ch <- prometheus.MustNewConstMetric(nc.cpuTotal, prometheus.GaugeValue, float64(nodes[node].cpuTotal), node, nodes[node].nodeStatus)
-		ch <- prometheus.MustNewConstMetric(nc.memAlloc, prometheus.GaugeValue, float64(nodes[node].memAlloc), node, nodes[node].nodeStatus)
-		ch <- prometheus.MustNewConstMetric(nc.memTotal, prometheus.GaugeValue, float64(nodes[node].memTotal), node, nodes[node].nodeStatus)
+		ch <- prometheus.MustNewConstMetric(nc.cpuAlloc, prometheus.GaugeValue, float64(nodes[node].cpuAlloc), node, nodes[node].nodeStatus, nodes[node].partitions)
+		ch <- prometheus.MustNewConstMetric(nc.cpuIdle, prometheus.GaugeValue, float64(nodes[node].cpuIdle), node, nodes[node].nodeStatus, nodes[node].partitions)
+		ch <- prometheus.MustNewConstMetric(nc.cpuOther, prometheus.GaugeValue, float64(nodes[node].cpuOther), node, nodes[node].nodeStatus, nodes[node].partitions)
+		ch <- prometheus.MustNewConstMetric(nc.cpuTotal, prometheus.GaugeValue, float64(nodes[node].cpuTotal), node, nodes[node].nodeStatus, nodes[node].partitions)
+		ch <- prometheus.MustNewConstMetric(nc.memAlloc, prometheus.GaugeValue, float64(nodes[node].memAlloc), node, nodes[node].nodeStatus, nodes[node].partitions)
+		ch <- prometheus.MustNewConstMetric(nc.memTotal, prometheus.GaugeValue, float64(nodes[node].memTotal), node, nodes[node].nodeStatus, nodes[node].partitions)
+		for _, gpu := range nodes[node].gpus {
+			ch <- prometheus.MustNewConstMetric(nc.gpuAlloc, prometheus.GaugeValue, float64(gpu.alloc), node, nodes[node].nodeStatus, gpu.gpuType)
+			ch <- prometheus.MustNewConstMetric(nc.gpuTotal, prometheus.GaugeValue, float64(gpu.total), node, nodes[node].nodeStatus, gpu.gpuType)
+		}
 	}
 }

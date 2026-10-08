@@ -33,4 +33,21 @@ func TestNodeMetrics(t *testing.T) {
 	assert.Equal(t, uint64(0), metrics["b001"].cpuOther)
 	assert.Equal(t, uint64(32), metrics["b001"].cpuTotal)
 	assert.Equal(t, "allocated", metrics["b001"].nodeStatus)
+	assert.Equal(t, "batch", metrics["b001"].partitions)
+
+	// g001: gres "gpu:mi250:8" with gres_used "gpu:mi250:3(IDX:0-2)"
+	if assert.Len(t, metrics["g001"].gpus, 1) {
+		assert.Equal(t, "mi250", metrics["g001"].gpus[0].gpuType)
+		assert.Equal(t, uint64(8), metrics["g001"].gpus[0].total)
+		assert.Equal(t, uint64(3), metrics["g001"].gpus[0].alloc)
+	}
+
+	// g003: untyped legacy GRES "gpu:2" yields an empty gpu_type
+	if assert.Len(t, metrics["g003"].gpus, 1) {
+		assert.Equal(t, "", metrics["g003"].gpus[0].gpuType)
+		assert.Equal(t, uint64(2), metrics["g003"].gpus[0].total)
+		assert.Equal(t, uint64(0), metrics["g003"].gpus[0].alloc)
+	}
+
+	assert.Empty(t, metrics["b001"].gpus)
 }
