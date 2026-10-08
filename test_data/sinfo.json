@@ -61,6 +61,18 @@
       "partitions": ["gpu-nvidia"]
     },
     {
+      "name": "p001",
+      "state": ["IDLE", "PLANNED"],
+      "cpus": 8,
+      "alloc_cpus": 0,
+      "idle_cpus": 0,
+      "real_memory": 128000,
+      "alloc_memory": 0,
+      "gres": "",
+      "gres_used": "",
+      "partitions": ["batch"]
+    },
+    {
       "name": "g003",
       "state": ["DOWN"],
       "cpus": 32,
