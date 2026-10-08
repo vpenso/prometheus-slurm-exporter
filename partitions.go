@@ -41,7 +41,6 @@ func ParsePartitionsMetrics() map[string]*PartitionMetrics {
 			if _, ok := partitions[p]; !ok {
 				partitions[p] = &PartitionMetrics{}
 			}
-			partitions[p].allocated += float64(n.AllocCPUs)
 			partitions[p].idle += float64(n.IdleCPUs)
 			partitions[p].other += float64(n.OtherCPUs())
 			partitions[p].total += float64(n.CPUs)
@@ -53,12 +52,19 @@ func ParsePartitionsMetrics() map[string]*PartitionMetrics {
 		log.Errorf("partitions: %v", err)
 		return partitions
 	}
+	// Allocated CPUs are derived from running jobs rather than the nodes'
+	// alloc_cpus field: a node shared across several partitions would
+	// otherwise have its allocated CPUs counted into each of them.
 	for _, j := range squeue.Jobs {
-		if j.State() != "PENDING" {
+		p, ok := partitions[j.Partition]
+		if !ok {
 			continue
 		}
-		if p, ok := partitions[j.Partition]; ok {
+		switch j.State() {
+		case "PENDING":
 			p.pending++
+		case "RUNNING":
+			p.allocated += float64(j.CPUs)
 		}
 	}
 
